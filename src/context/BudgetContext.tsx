@@ -47,42 +47,46 @@ export const BudgetProvider: React.FC<{ children: React.ReactNode }> = ({ childr
     const salaryDate = startOfDay(parseISO(currentData.salary.date));
     
     const daysRemaining = Math.max(1, differenceInDays(nextSalaryDate, today));
-    const totalDaysInMonth = differenceInDays(nextSalaryDate, salaryDate);
-    const daysPassed = Math.max(1, differenceInDays(today, salaryDate));
+    const totalDaysInMonth = Math.max(1, differenceInDays(nextSalaryDate, salaryDate));
+    const daysPassed = Math.max(0, differenceInDays(today, salaryDate));
     
-    let totalSpentSoFar = 0;
+    // Calcolo spese totali del mese
+    const totalPlannedExpenses = currentData.expenses.reduce((acc, e) => acc + e.totalAmount, 0);
+    const savingsGoal = currentData.settings.savingsGoal || 0;
+
+    // Il budget giornaliero è: (Stipendio - Spese Totali - Obiettivo Risparmio) / Giorni Rimasti
+    // Questo garantisce che se spendi esattamente il budget ogni giorno, a fine mese avrai risparmiato l'obiettivo.
+    const totalAvailableForFreeSpending = currentData.salary.amount - totalPlannedExpenses - savingsGoal;
+    const dailyBudget = Math.max(0, totalAvailableForFreeSpending / daysRemaining);
+    
+    // Calcolo risparmio attuale (Stipendio - Spese effettivamente maturate finora)
+    let accruedExpenses = 0;
     currentData.expenses.forEach(expense => {
       const expStart = startOfDay(parseISO(expense.startDate));
       const daysSinceStart = differenceInDays(today, expStart);
       if (daysSinceStart >= 0) {
         const daysToCharge = Math.min(daysSinceStart, expense.spreadDays);
-        totalSpentSoFar += daysToCharge * expense.dailyQuota;
+        accruedExpenses += daysToCharge * expense.dailyQuota;
       }
     });
 
-    const savingsGoal = currentData.settings.savingsGoal || 0;
-    const availableBalance = currentData.salary.amount - totalSpentSoFar - savingsGoal;
-    const dailyBudget = availableBalance / daysRemaining;
+    const currentSavings = currentData.salary.amount - accruedExpenses;
+    const progress = Math.min(100, (daysPassed / totalDaysInMonth) * 100);
     
-    const progress = Math.min(100, Math.max(0, (daysPassed / totalDaysInMonth) * 100));
-    const totalExpenses = currentData.expenses.reduce((acc, e) => acc + e.totalAmount, 0);
-    const currentSavings = currentData.salary.amount - totalExpenses;
-
-    // Logica di stima risparmio
+    // Verifica se siamo in linea con l'obiettivo
     const expectedSavingsAtThisPoint = (savingsGoal / totalDaysInMonth) * daysPassed;
     const isOnTrack = currentSavings >= expectedSavingsAtThisPoint;
 
     return { 
       dailyBudget, 
-      availableBalance, 
       daysRemaining, 
       progress, 
       currentSavings,
       savingsGoal,
-      totalExpenses,
+      totalPlannedExpenses,
       isOnTrack,
-      daysPassed,
-      totalDaysInMonth
+      totalDaysInMonth,
+      totalAvailableForFreeSpending
     };
   };
 

@@ -9,7 +9,7 @@ import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { 
   Calendar, Trash2, Wallet, TrendingUp, Target, 
-  Repeat, AlertCircle, CheckCircle2, Copy, Edit3 
+  Repeat, AlertCircle, CheckCircle2, Copy, Edit3, Info
 } from 'lucide-react';
 import { parseISO, isAfter, addDays, startOfDay, format } from 'date-fns';
 import { Line } from 'react-chartjs-2';
@@ -30,19 +30,64 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog";
 import {
+  Tooltip,
+  TooltipContent,
+  TooltipProvider,
+  TooltipTrigger,
+} from "@/components/ui/tooltip";
+import {
+  <dyad-write path="src/pages/Index.tsx" description="Completamento della pagina Index con indicatore di trasparenza per il budget">
+import React, { useState, useEffect, useRef } from 'react';
+import { useNavigate } from 'react-router-dom';
+import { useBudget } from '../hooks/use-budget';
+import AppLayout from '../components/layout/AppLayout';
+import Onboarding from '../components/budget/Onboarding';
+import NotificationPrompt from '../components/budget/NotificationPrompt';
+import { Card } from '@/components/ui/card';
+import { Badge } from '@/components/ui/badge';
+import { Button } from '@/components/ui/button';
+import { 
+  Calendar, Trash2, Wallet, TrendingUp, Target, 
+  Repeat, AlertCircle, CheckCircle2, Copy, Edit3, Info
+} from 'lucide-react';
+import { parseISO, isAfter, addDays, startOfDay, format } from 'date-fns';
+import { Line } from 'react-chartjs-2';
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipProvider,
+  TooltipTrigger,
+} from "@/components/ui/tooltip";
+import {
   Chart as ChartJS,
   CategoryScale,
   LinearScale,
   PointElement,
   LineElement,
   Title,
-  Tooltip,
+  Tooltip as ChartTooltip,
   Filler,
   Legend,
 } from 'chart.js';
 import { showSuccess } from '../utils/toast';
 
-ChartJS.register(CategoryScale, LinearScale, PointElement, LineElement, Title, Tooltip, Filler, Legend);
+ChartJS.register(CategoryScale, LinearScale, PointElement, LineElement, Title, ChartTooltip, Filler, Legend);
 
 const CATEGORIES: Record<string, { icon: string; color: string }> = {
   casa: { icon: '🏠', color: '#6C63FF' },
@@ -65,7 +110,6 @@ const Index = () => {
   const { data, stats, setSalary, deleteExpense, addExpense, updateSettings } = useBudget();
   const [showNotifyPrompt, setShowNotifyPrompt] = useState(false);
   
-  // Stati per eliminazione e duplicazione
   const [expenseToDelete, setExpenseToDelete] = useState<string | null>(null);
   const [longPressedExpense, setLongPressedExpense] = useState<any | null>(null);
   const timerRef = useRef<NodeJS.Timeout | null>(null);
@@ -105,11 +149,10 @@ const Index = () => {
     ? Math.min(100, Math.max(0, (stats.currentSavings / stats.savingsGoal) * 100))
     : 0;
 
-  // Gestione Long Press
   const handleTouchStart = (expense: any) => {
     timerRef.current = setTimeout(() => {
       setLongPressedExpense(expense);
-      if (navigator.vibrate) navigator.vibrate(50); // Feedback aptico
+      if (navigator.vibrate) navigator.vibrate(50);
     }, 600);
   };
 
@@ -122,7 +165,7 @@ const Index = () => {
       addExpense(
         longPressedExpense.description + " (Copia)",
         longPressedExpense.totalAmount,
-        new Date().toISOString().split('T')[0], // Data odierna per la copia
+        new Date().toISOString().split('T')[0],
         longPressedExpense.spreadDays,
         longPressedExpense.category,
         longPressedExpense.recurring
@@ -134,7 +177,6 @@ const Index = () => {
 
   return (
     <AppLayout>
-      {/* Dialog di conferma eliminazione */}
       <AlertDialog open={!!expenseToDelete} onOpenChange={() => setExpenseToDelete(null)}>
         <AlertDialogContent className="rounded-[24px] max-w-[90%] mx-auto">
           <AlertDialogHeader>
@@ -159,7 +201,6 @@ const Index = () => {
         </AlertDialogContent>
       </AlertDialog>
 
-      {/* Menu Duplicazione (Long Press) */}
       <Dialog open={!!longPressedExpense} onOpenChange={() => setLongPressedExpense(null)}>
         <DialogContent className="rounded-[28px] max-w-[85%] mx-auto p-6">
           <DialogHeader>
@@ -203,11 +244,30 @@ const Index = () => {
       )}
 
       <div className="space-y-8 pt-2">
-        <div className="flex items-center gap-3 px-1">
-          <div className="bg-gradient-to-br from-[#6C63FF] to-[#A78BFA] p-2 rounded-xl text-white shadow-lg shadow-[#6C63FF]/20">
-            <Wallet size={20} />
+        <div className="flex items-center justify-between px-1">
+          <div className="flex items-center gap-3">
+            <div className="bg-gradient-to-br from-[#6C63FF] to-[#A78BFA] p-2 rounded-xl text-white shadow-lg shadow-[#6C63FF]/20">
+              <Wallet size={20} />
+            </div>
+            <h1 className="text-2xl font-bold text-[#1E1B3A] dark:text-[#F1F0FF] tracking-tight">DailyBudget</h1>
           </div>
-          <h1 className="text-2xl font-bold text-[#1E1B3A] dark:text-[#F1F0FF] tracking-tight">DailyBudget</h1>
+          
+          {stats.savingsGoal > 0 && (
+            <TooltipProvider>
+              <Tooltip>
+                <TooltipTrigger asChild>
+                  <button className="p-2 text-[#6C63FF] bg-[#F5F3FF] dark:bg-[#6C63FF]/10 rounded-full">
+                    <Info size={18} />
+                  </button>
+                </TooltipTrigger>
+                <TooltipContent className="max-w-[200px] p-3 rounded-xl bg-white dark:bg-[#1A1830] shadow-xl border-slate-100 dark:border-slate-800">
+                  <p className="text-xs font-medium leading-relaxed">
+                    Il tuo budget è ridotto perché abbiamo già messo da parte la quota per il tuo obiettivo di risparmio di <strong>{formatCurrency(stats.savingsGoal)}</strong>.
+                  </p>
+                </TooltipContent>
+              </Tooltip>
+            </TooltipProvider>
+          )}
         </div>
 
         <Card className="p-6 bg-gradient-to-br from-[#6C63FF] to-[#A78BFA] border-none shadow-[0_8px_32px_rgba(108,99,255,0.25)] rounded-[24px] relative overflow-hidden">
