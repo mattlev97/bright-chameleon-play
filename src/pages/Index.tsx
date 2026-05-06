@@ -6,6 +6,7 @@ import Onboarding from '../components/budget/Onboarding';
 import NotificationPrompt from '../components/budget/NotificationPrompt';
 import { Card } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
+import { Button } from '@/components/ui/button';
 import { 
   Calendar, Trash2, Wallet, TrendingUp, Target, 
   Repeat, AlertCircle, CheckCircle2, Copy, Edit3 
