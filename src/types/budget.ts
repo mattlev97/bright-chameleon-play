@@ -2,6 +2,8 @@ export type CategoryId =
   | 'casa' | 'cibo' | 'trasporti' | 'svago' | 'salute' | 'shopping' 
   | 'abbonamenti' | 'regali' | 'animali' | 'istruzione' | 'viaggi' | 'investimenti' | 'altro';
 
+export type PetType = 'rhino' | 'elephant';
+
 export interface Category {
   id: CategoryId;
   label: string;
@@ -45,6 +47,7 @@ export interface Settings {
   language: string;
   savingsGoal: number | null;
   notificationsEnabled: boolean;
+  selectedPet: PetType;
 }
 
 export interface BudgetData {
