@@ -1,7 +1,11 @@
 "use client";
 
 import { useState, useCallback } from 'react';
-import { pipeline } from '@xenova/transformers';
+import { pipeline, env } from '@xenova/transformers';
+
+// Configurazione per assicurarsi che il download avvenga correttamente nel browser
+env.allowLocalModels = false;
+env.useBrowserCache = true;
 
 export function useAI() {
   const [generator, setGenerator] = useState<any>(null);
@@ -14,47 +18,35 @@ export function useAI() {
     if (generator || loading) return;
     
     setLoading(true);
-    setStatus('Inizializzazione...');
-    
-    // Mappa per tracciare il progresso di ogni file
-    const fileProgress: Record<string, number> = {};
+    setStatus('Connessione ai server IA...');
+    console.log("Bibi AI: Inizio caricamento modello...");
     
     try {
       const pipe = await pipeline('text2text-generation', 'Xenova/LaMini-Flan-T5-78M', {
         progress_callback: (p: any) => {
-          fileProgress[p.file] = p.progress || 0;
+          // Logghiamo in console per debug reale
+          console.log(`Bibi AI Progress [${p.status}]: ${p.file || ''}`, p.progress || '');
 
-          // Calcoliamo il progresso basandoci sulla fase
           if (p.status === 'init') {
-            setStatus('Preparazione download...');
+            setStatus('Ricerca file del cervello...');
             setProgress(2);
           } else if (p.status === 'progress') {
-            // Identifichiamo se è il file pesante (il modello)
-            const isModelFile = p.file.includes('model.safetensors') || p.file.includes('pytorch_model.bin');
+            const isModel = p.file.includes('model') || p.file.includes('weights');
             
-            if (isModelFile) {
-              // Il modello pesa circa il 90% del totale. 
-              // Facciamo partire la barra dal 10% e la portiamo al 95% durante il download del modello.
+            if (isModel) {
               const modelProgress = 10 + (p.progress * 0.85);
               setProgress(Math.round(modelProgress));
-              setStatus(`Scaricando il cervello di Bibi... ${Math.round(p.progress)}%`);
+              setStatus(`Download cervello: ${Math.round(p.progress)}%`);
             } else {
-              // Per i file piccoli (tokenizer, config), avanziamo lentamente nel primo 10%
-              // Contiamo quanti file piccoli abbiamo visto
-              const smallFilesCount = Object.keys(fileProgress).filter(f => !f.includes('model')).length;
-              const smallProgress = Math.min(10, smallFilesCount * 2 + (p.progress * 0.02));
-              setProgress(Math.round(smallProgress));
-              setStatus(`Caricamento configurazione: ${p.file}`);
+              setStatus(`Caricamento configurazione...`);
+              setProgress(prev => Math.min(10, prev + 1));
             }
           } else if (p.status === 'done') {
-            // Quando un file è finito, diamo un piccolo scatto
-            if (p.file.includes('model')) {
-              setProgress(95);
-              setStatus('Modello scaricato. Installazione...');
-            }
+            console.log(`Bibi AI: File ${p.file} scaricato con successo.`);
           } else if (p.status === 'ready') {
+            console.log("Bibi AI: Modello pronto all'uso!");
             setProgress(100);
-            setStatus('Bibi è pronta!');
+            setStatus('Bibi è sveglia!');
           }
         }
       });
@@ -62,14 +54,14 @@ export function useAI() {
       setGenerator(() => pipe);
       setReady(true);
     } catch (err) {
-      console.error("Errore caricamento AI locale:", err);
-      setStatus('Errore: riprova più tardi');
+      console.error("Bibi AI Error:", err);
+      setStatus('Errore di connessione. Riprova.');
       setLoading(false);
     }
   }, [generator, loading]);
 
   const askBibi = async (prompt: string, context: string) => {
-    if (!generator) return "Sto ancora caricando il mio cervello... riprova tra un istante!";
+    if (!generator) return "Sto ancora caricando... un attimo!";
     
     try {
       const fullPrompt = `System: You are Bibi, a helpful financial assistant. Answer in Italian.
@@ -85,8 +77,8 @@ export function useAI() {
 
       return output[0].generated_text;
     } catch (err) {
-      console.error("Errore generazione risposta:", err);
-      return "Scusa, ho avuto un piccolo corto circuito mentale. Riprova?";
+      console.error("Bibi AI Generation Error:", err);
+      return "Ho avuto un piccolo vuoto di memoria. Puoi ripetere?";
     }
   };
 
