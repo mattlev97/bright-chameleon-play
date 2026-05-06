@@ -7,8 +7,8 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Switch } from '@/components/ui/switch';
 import { Card } from '@/components/ui/card';
-import { ArrowLeft, Sparkles, Repeat, CalendarRange } from 'lucide-react';
-import { CategoryId } from '../types/budget';
+import { ArrowLeft, Sparkles, Repeat, CalendarRange, ShieldCheck, Zap, HelpCircle } from 'lucide-react';
+import { CategoryId, ExpenseWeight } from '../types/budget';
 import { differenceInDays, endOfMonth, parseISO } from 'date-fns';
 
 const CATEGORIES: { id: CategoryId; label: string; icon: string; color: string }[] = [
@@ -41,8 +41,8 @@ const AddExpense = () => {
   const [days, setDays] = useState(editExpense?.spreadDays.toString() || '1');
   const [category, setCategory] = useState<CategoryId>(editExpense?.category || 'altro');
   const [recurring, setRecurring] = useState(editExpense?.recurring || false);
+  const [weight, setWeight] = useState<ExpenseWeight>(editExpense?.weight || 'neutral');
 
-  // Calcolo automatico giorni spalma se non è in modifica
   useEffect(() => {
     if (!editExpense) {
       const selectedDate = parseISO(date);
@@ -63,10 +63,11 @@ const AddExpense = () => {
           startDate: date,
           spreadDays,
           category,
-          recurring
+          recurring,
+          weight
         });
       } else {
-        addExpense(description, parseFloat(amount), date, spreadDays, category, recurring);
+        addExpense(description, parseFloat(amount), date, spreadDays, category, recurring, weight);
       }
       navigate('/');
     }
@@ -89,6 +90,48 @@ const AddExpense = () => {
 
         <form onSubmit={handleSubmit} className="space-y-6">
           <Card className="p-6 bg-white dark:bg-[#1A1830] border-none shadow-[0_4px_20px_rgba(0,0,0,0.04)] rounded-[24px] space-y-6">
+            <div className="space-y-3">
+              <Label className="text-[11px] font-bold uppercase tracking-wider text-[#6B7280] dark:text-[#9CA3AF]">Tipo di spesa</Label>
+              <div className="grid grid-cols-3 gap-2">
+                <button
+                  type="button"
+                  onClick={() => setWeight('necessary')}
+                  className={`flex flex-col items-center gap-1.5 p-3 rounded-2xl border-2 transition-all ${
+                    weight === 'necessary' 
+                      ? 'border-green-500 bg-green-50 dark:bg-green-900/20 text-green-600' 
+                      : 'border-transparent bg-slate-50 dark:bg-slate-900/50 text-slate-400'
+                  }`}
+                >
+                  <ShieldCheck size={20} />
+                  <span className="text-[10px] font-bold">Necessaria</span>
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setWeight('neutral')}
+                  className={`flex flex-col items-center gap-1.5 p-3 rounded-2xl border-2 transition-all ${
+                    weight === 'neutral' 
+                      ? 'border-[#6C63FF] bg-[#F5F3FF] dark:bg-[#6C63FF]/10 text-[#6C63FF]' 
+                      : 'border-transparent bg-slate-50 dark:bg-slate-900/50 text-slate-400'
+                  }`}
+                >
+                  <HelpCircle size={20} />
+                  <span className="text-[10px] font-bold">Neutra</span>
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setWeight('impulsive')}
+                  className={`flex flex-col items-center gap-1.5 p-3 rounded-2xl border-2 transition-all ${
+                    weight === 'impulsive' 
+                      ? 'border-red-500 bg-red-50 dark:bg-red-900/20 text-red-600' 
+                      : 'border-transparent bg-slate-50 dark:bg-slate-900/50 text-slate-400'
+                  }`}
+                >
+                  <Zap size={20} />
+                  <span className="text-[10px] font-bold">Impulso</span>
+                </button>
+              </div>
+            </div>
+
             <div className="space-y-2">
               <Label className="text-[11px] font-bold uppercase tracking-wider text-[#6B7280] dark:text-[#9CA3AF]">Categoria</Label>
               <div className="flex gap-3 overflow-x-auto pb-2 no-scrollbar">
@@ -131,7 +174,7 @@ const AddExpense = () => {
                   type="number" 
                   step="0.01"
                   placeholder="0.00" 
-                  className="pl-10 h-13 rounded-xl border-[1.5px] border-slate-200 dark:border-slate-800 bg-transparent focus:border-[#6C63FF] focus:ring-0 transition-all font-bold"
+                  className="pl-10 h-13 rounded-xl border-[1.5px] border-slate-200 dark:border-slate-800 bg-transparent font-bold"
                   value={amount}
                   onChange={(e) => setAmount(e.target.value)}
                   required
@@ -144,48 +187,46 @@ const AddExpense = () => {
               <Input 
                 id="date"
                 type="date" 
-                className="h-13 rounded-xl border-[1.5px] border-slate-200 dark:border-slate-800 bg-transparent focus:border-[#6C63FF] focus:ring-0 transition-all font-medium"
+                className="h-13 rounded-xl border-[1.5px] border-slate-200 dark:border-slate-800 bg-transparent font-medium"
                 value={date}
                 onChange={(e) => setDate(e.target.value)}
                 required
               />
             </div>
 
-            <div className="space-y-4">
-              <div className="p-4 bg-[#F4F6FB] dark:bg-slate-900/50 rounded-2xl space-y-3">
-                <div className="flex items-center gap-2 text-[#6C63FF]">
-                  <CalendarRange size={18} />
-                  <Label className="text-sm font-bold">Spalmatura Spesa</Label>
-                </div>
-                <div className="space-y-2">
-                  <p className="text-[11px] text-[#6B7280] dark:text-[#9CA3AF]">Su quanti giorni vuoi dividere questo costo?</p>
-                  <Input 
-                    id="days"
-                    type="number" 
-                    min="1"
-                    placeholder="30" 
-                    className="h-12 rounded-xl border-[1.5px] border-slate-200 dark:border-slate-800 bg-white dark:bg-[#1A1830]"
-                    value={days}
-                    onChange={(e) => setDays(e.target.value)}
-                    required
-                  />
-                </div>
+            <div className="p-4 bg-[#F4F6FB] dark:bg-slate-900/50 rounded-2xl space-y-3">
+              <div className="flex items-center gap-2 text-[#6C63FF]">
+                <CalendarRange size={18} />
+                <Label className="text-sm font-bold">Spalmatura Spesa</Label>
               </div>
-
-              <div className="flex items-center justify-between p-4 bg-[#F4F6FB] dark:bg-slate-900/50 rounded-2xl">
-                <div className="space-y-0.5">
-                  <div className="flex items-center gap-2">
-                    <Repeat size={14} className="text-[#6C63FF]" />
-                    <Label className="text-sm font-bold text-[#1E1B3A] dark:text-[#F1F0FF]">Spesa ricorrente</Label>
-                  </div>
-                  <p className="text-[11px] text-[#6B7280] dark:text-[#9CA3AF]">Si ripete ogni mese</p>
-                </div>
-                <Switch 
-                  checked={recurring}
-                  onCheckedChange={setRecurring}
-                  className="data-[state=checked]:bg-[#6C63FF]"
+              <div className="space-y-2">
+                <p className="text-[11px] text-[#6B7280] dark:text-[#9CA3AF]">Su quanti giorni vuoi dividere questo costo?</p>
+                <Input 
+                  id="days"
+                  type="number" 
+                  min="1"
+                  placeholder="30" 
+                  className="h-12 rounded-xl border-[1.5px] border-slate-200 dark:border-slate-800 bg-white dark:bg-[#1A1830]"
+                  value={days}
+                  onChange={(e) => setDays(e.target.value)}
+                  required
                 />
               </div>
+            </div>
+
+            <div className="flex items-center justify-between p-4 bg-[#F4F6FB] dark:bg-slate-900/50 rounded-2xl">
+              <div className="space-y-0.5">
+                <div className="flex items-center gap-2">
+                  <Repeat size={14} className="text-[#6C63FF]" />
+                  <Label className="text-sm font-bold text-[#1E1B3A] dark:text-[#F1F0FF]">Spesa ricorrente</Label>
+                </div>
+                <p className="text-[11px] text-[#6B7280] dark:text-[#9CA3AF]">Si ripete ogni mese</p>
+              </div>
+              <Switch 
+                checked={recurring}
+                onCheckedChange={setRecurring}
+                className="data-[state=checked]:bg-[#6C63FF]"
+              />
             </div>
           </Card>
 

@@ -63,7 +63,7 @@ const CATEGORIES: Record<string, { icon: string; color: string }> = {
 
 const Index = () => {
   const navigate = useNavigate();
-  const { data, stats, setSalary, deleteExpense, addExpense, updateSettings } = useBudget();
+  const { data, stats, reaction, setSalary, deleteExpense, addExpense, updateSettings } = useBudget();
   const [showNotifyPrompt, setShowNotifyPrompt] = useState(false);
   const [showBreakdown, setShowBreakdown] = useState(false);
   
@@ -125,7 +125,8 @@ const Index = () => {
         new Date().toISOString().split('T')[0],
         longPressedExpense.spreadDays,
         longPressedExpense.category,
-        longPressedExpense.recurring
+        longPressedExpense.recurring,
+        longPressedExpense.weight || 'neutral'
       );
       showSuccess("Spesa duplicata!");
       setLongPressedExpense(null);
@@ -262,7 +263,7 @@ const Index = () => {
         <div className="flex justify-center -mb-12 relative z-20">
           <MascotBlob 
             type={data.settings.mascotId} 
-            state={stats.mascotState} 
+            state={reaction || stats.mascotState} 
             size={120} 
           />
         </div>

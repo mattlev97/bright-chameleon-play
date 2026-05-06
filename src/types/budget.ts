@@ -3,6 +3,7 @@ export type CategoryId =
   | 'abbonamenti' | 'regali' | 'animali' | 'istruzione' | 'viaggi' | 'investimenti' | 'altro';
 
 export type MascotId = 'classic' | 'tall' | 'wide';
+export type ExpenseWeight = 'necessary' | 'neutral' | 'impulsive';
 
 export interface Category {
   id: CategoryId;
@@ -26,6 +27,7 @@ export interface Expense {
   dailyQuota: number;
   category: CategoryId;
   recurring: boolean;
+  weight: ExpenseWeight;
 }
 
 export interface DailyHistory {
