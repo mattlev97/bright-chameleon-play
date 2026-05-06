@@ -5,7 +5,7 @@ import Onboarding from '../components/budget/Onboarding';
 import { Progress } from '@/components/ui/progress';
 import { Card } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
-import { TrendingDown, Calendar, Trash2, Wallet } from 'lucide-react';
+import { Calendar, Trash2, Wallet } from 'lucide-react';
 import { parseISO, isAfter, addDays, startOfDay } from 'date-fns';
 
 const Index = () => {
@@ -18,55 +18,74 @@ const Index = () => {
   const formatCurrency = (val: number) => 
     new Intl.NumberFormat('it-IT', { style: 'currency', currency: 'EUR' }).format(val);
 
+  const getCategoryIcon = (desc: string) => {
+    const d = desc.toLowerCase();
+    if (d.includes('spesa') || d.includes('cibo')) return '🛒';
+    if (d.includes('affitto') || d.includes('casa')) return '🏠';
+    if (d.includes('cena') || d.includes('ristorante')) return '🍕';
+    if (d.includes('trasporti') || d.includes('auto')) return '🚗';
+    if (d.includes('svago') || d.includes('cinema')) return '🎬';
+    return '💰';
+  };
+
   return (
     <AppLayout>
-      <div className="space-y-6 pt-2">
+      <div className="space-y-8 pt-2">
         {/* App Header */}
-        <div className="flex items-center gap-3 px-2 mb-2">
-          <div className="bg-green-500 p-2 rounded-xl text-white shadow-lg shadow-green-100">
-            <Wallet size={24} />
+        <div className="flex items-center gap-3 px-1">
+          <div className="bg-gradient-to-br from-[#6C63FF] to-[#A78BFA] p-2 rounded-xl text-white shadow-lg shadow-[#6C63FF]/20">
+            <Wallet size={20} />
           </div>
-          <h1 className="text-2xl font-black text-slate-800 tracking-tight">DailyBudget</h1>
+          <h1 className="text-2xl font-bold text-[#1E1B3A] dark:text-[#F1F0FF] tracking-tight">DailyBudget</h1>
         </div>
 
-        {/* Hero Card */}
-        <Card className="p-8 bg-white border-none shadow-2xl shadow-slate-200/50 rounded-[32px] relative overflow-hidden">
-          <div className="absolute top-0 right-0 w-32 h-32 bg-green-50 rounded-full -mr-16 -mt-16 opacity-50" />
+        {/* Hero Card Premium */}
+        <Card className="p-6 bg-gradient-to-br from-[#6C63FF] to-[#A78BFA] border-none shadow-[0_8px_32px_rgba(108,99,255,0.25)] rounded-[24px] relative overflow-hidden">
+          {/* Decorative Elements */}
+          <div className="absolute -top-10 -right-10 w-32 h-32 bg-white/10 rounded-full blur-2xl" />
+          <svg className="absolute bottom-0 left-0 w-full opacity-15 pointer-events-none" viewBox="0 0 1440 320" preserveAspectRatio="none">
+            <path fill="#ffffff" d="M0,160L48,176C96,192,192,224,288,213.3C384,203,480,149,576,149.3C672,149,768,203,864,218.7C960,235,1056,213,1152,186.7C1248,160,1344,128,1392,112L1440,96L1440,320L1392,320C1344,320,1248,320,1152,320C1056,320,960,320,864,320C768,320,672,320,576,320C480,320,384,320,288,320C192,320,96,320,48,320L0,320Z"></path>
+          </svg>
           
           <div className="relative z-10">
-            <p className="text-slate-400 font-bold text-xs uppercase tracking-widest mb-1">Budget di oggi</p>
-            <h1 className={`text-5xl font-black tracking-tight mb-6 ${stats.dailyBudget >= 0 ? 'text-green-600' : 'text-red-500'}`}>
+            <p className="text-white/80 font-medium text-[13px] mb-1">Budget di oggi</p>
+            <h1 className="text-[42px] font-bold text-white tracking-tight mb-4 leading-none">
               {formatCurrency(stats.dailyBudget)}
             </h1>
             
-            <div className="flex items-center gap-2 text-slate-500 mb-6">
-              <Calendar size={16} className="text-green-500" />
-              <span className="text-sm font-bold">
+            <div className="flex items-center gap-2 text-white/85 mb-6">
+              <Calendar size={14} />
+              <span className="text-sm font-medium">
                 {stats.daysRemaining} giorni al prossimo stipendio
               </span>
             </div>
 
             <div className="space-y-2">
-              <div className="flex justify-between text-[10px] font-black text-slate-400 uppercase tracking-widest">
+              <div className="flex justify-between text-[10px] font-bold text-white/70 uppercase tracking-wider">
                 <span>Mese trascorso</span>
                 <span>{Math.round(stats.progress)}%</span>
               </div>
-              <Progress value={stats.progress} className="h-2.5 bg-slate-100" />
+              <div className="h-2 w-full bg-white/20 rounded-full overflow-hidden">
+                <div 
+                  className="h-full bg-white/90 transition-all duration-1000" 
+                  style={{ width: `${stats.progress}%` }}
+                />
+              </div>
             </div>
           </div>
         </Card>
 
         {/* Spese Recenti */}
-        <div className="space-y-4">
-          <div className="flex justify-between items-end px-2">
-            <h2 className="text-xl font-black text-slate-800">Spese recenti</h2>
-            <span className="text-xs font-bold text-slate-400">Saldo: {formatCurrency(stats.availableBalance)}</span>
+        <div className="space-y-5">
+          <div className="flex justify-between items-end px-1">
+            <h2 className="text-[18px] font-bold text-[#1E1B3A] dark:text-[#F1F0FF]">Spese recenti</h2>
+            <span className="text-[13px] font-medium text-[#6B7280] dark:text-[#9CA3AF]">Saldo: {formatCurrency(stats.availableBalance)}</span>
           </div>
 
           <div className="space-y-3">
             {data.expenses.length === 0 ? (
-              <div className="text-center py-12 bg-white rounded-[2rem] border-2 border-dashed border-slate-100">
-                <p className="text-slate-400 text-sm font-medium">Nessuna spesa inserita</p>
+              <div className="text-center py-12 bg-white dark:bg-[#1A1830] rounded-[20px] border border-slate-100 dark:border-slate-800 shadow-sm">
+                <p className="text-[#6B7280] text-sm font-medium">Nessuna spesa inserita</p>
               </div>
             ) : (
               data.expenses.map((expense) => {
@@ -75,31 +94,33 @@ const Index = () => {
                 const isActive = isAfter(endDate, today);
 
                 return (
-                  <div key={expense.id} className="bg-white p-5 rounded-[2rem] border border-slate-50 flex items-center justify-between shadow-sm active:scale-[0.98] transition-all">
+                  <div key={expense.id} className="bg-white dark:bg-[#1A1830] p-4 rounded-[16px] border border-slate-100/50 dark:border-slate-800/50 flex items-center justify-between shadow-[0_2px_8px_rgba(0,0,0,0.04)] active:scale-[0.98] transition-all">
                     <div className="flex items-center gap-4">
-                      <div className={`p-3 rounded-2xl ${isActive ? 'bg-green-50 text-green-600' : 'bg-slate-50 text-slate-400'}`}>
-                        <TrendingDown size={20} />
+                      <div className="w-12 h-12 rounded-full bg-slate-50 dark:bg-slate-900 flex items-center justify-center text-xl shadow-inner">
+                        {getCategoryIcon(expense.description)}
                       </div>
                       <div>
-                        <h3 className="font-bold text-slate-800 leading-tight">{expense.description}</h3>
-                        <p className="text-xs text-slate-400 font-bold">
-                          {formatCurrency(expense.totalAmount)} • {expense.spreadDays}gg
+                        <h3 className="font-bold text-[#1E1B3A] dark:text-[#F1F0FF] leading-tight">{expense.description}</h3>
+                        <p className="text-[12px] text-[#6B7280] dark:text-[#9CA3AF] font-medium mt-0.5">
+                          {formatCurrency(expense.dailyQuota)}/gg
                         </p>
                       </div>
                     </div>
                     <div className="flex flex-col items-end gap-2">
-                      <span className="text-sm font-black text-slate-700">
-                        -{formatCurrency(expense.dailyQuota)}/gg
+                      <span className="text-[15px] font-bold text-[#1E1B3A] dark:text-[#F1F0FF]">
+                        {formatCurrency(expense.totalAmount)}
                       </span>
                       <div className="flex items-center gap-2">
-                        <Badge variant={isActive ? "default" : "secondary"} className={isActive ? "bg-green-100 text-green-700 hover:bg-green-100 border-none font-bold px-3" : "bg-slate-100 text-slate-400 border-none font-bold px-3"}>
-                          {isActive ? 'Attiva' : 'Conclusa'}
-                        </Badge>
+                        {isActive && (
+                          <Badge className="bg-[#EDE9FE] text-[#6C63FF] hover:bg-[#EDE9FE] border-none font-bold text-[10px] px-2 py-0.5 rounded-md">
+                            ATTIVA
+                          </Badge>
+                        )}
                         <button 
                           onClick={() => deleteExpense(expense.id)}
-                          className="p-2 text-slate-200 hover:text-red-400 transition-colors"
+                          className="p-1.5 text-slate-300 hover:text-red-400 transition-colors"
                         >
-                          <Trash2 size={16} />
+                          <Trash2 size={14} />
                         </button>
                       </div>
                     </div>

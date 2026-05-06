@@ -20,59 +20,54 @@ const Onboarding = ({ onComplete }: OnboardingProps) => {
   };
 
   return (
-    <div className="min-h-screen flex flex-col bg-white">
+    <div className="min-h-screen flex flex-col bg-[#F4F6FB] dark:bg-[#0F0E1A]">
       {/* Top Section (40%) */}
-      <div className="h-[40vh] bg-green-500 flex flex-col items-center justify-center text-white p-6">
-        <div className="bg-white/20 p-6 rounded-[2.5rem] backdrop-blur-md mb-4 animate-in zoom-in duration-700">
-          <Wallet size={64} strokeWidth={1.5} />
+      <div className="h-[40vh] bg-gradient-to-br from-[#6C63FF] to-[#A78BFA] flex flex-col items-center justify-center text-white p-6 relative overflow-hidden">
+        <div className="absolute -top-20 -left-20 w-64 h-64 bg-white/10 rounded-full blur-3xl" />
+        <div className="bg-white/20 p-6 rounded-[2.5rem] backdrop-blur-md mb-4 animate-in zoom-in duration-700 shadow-2xl">
+          <Wallet size={56} strokeWidth={1.5} />
         </div>
-        <h1 className="text-4xl font-black tracking-tight">DailyBudget</h1>
-        <p className="text-green-100 font-medium mt-1 opacity-80">Gestione intelligente</p>
+        <h1 className="text-4xl font-bold tracking-tight">DailyBudget</h1>
+        <p className="text-white/80 font-medium mt-1">Finanza personale premium</p>
       </div>
 
-      {/* Bottom Section (60%) */}
-      <div className="flex-1 bg-white rounded-t-[3rem] -mt-12 p-8 space-y-8 shadow-2xl">
+      {/* Bottom Section (60%) - Sheet Effect */}
+      <div className="flex-1 bg-white dark:bg-[#1A1830] rounded-t-[28px] -mt-10 p-8 space-y-8 shadow-[0_-8px_32px_rgba(0,0,0,0.05)] relative z-10">
         <div className="space-y-2">
-          <h2 className="text-3xl font-bold text-slate-900">Benvenuto!</h2>
-          <p className="text-slate-500 leading-relaxed">
+          <h2 className="text-2xl font-bold text-[#1E1B3A] dark:text-[#F1F0FF]">Benvenuto!</h2>
+          <p className="text-[#6B7280] dark:text-[#9CA3AF] text-sm leading-relaxed">
             Il tuo budget cresce ogni giorno che risparmi. Inizia a tracciare le tue finanze oggi.
           </p>
         </div>
 
         {/* Features */}
-        <div className="space-y-4">
-          <div className="flex items-center gap-4">
-            <div className="p-2 bg-green-50 text-green-600 rounded-xl">
-              <PiggyBank size={20} />
+        <div className="grid grid-cols-1 gap-4">
+          <div className="flex items-center gap-4 p-3 rounded-2xl bg-slate-50 dark:bg-slate-900/50">
+            <div className="p-2 bg-[#F5F3FF] text-[#6C63FF] rounded-xl">
+              <PiggyBank size={18} />
             </div>
-            <p className="text-sm font-semibold text-slate-700">Inserisci il tuo stipendio</p>
+            <p className="text-xs font-semibold text-[#1E1B3A] dark:text-[#F1F0FF]">Inserisci lo stipendio</p>
           </div>
-          <div className="flex items-center gap-4">
-            <div className="p-2 bg-blue-50 text-blue-600 rounded-xl">
-              <BarChart3 size={20} />
+          <div className="flex items-center gap-4 p-3 rounded-2xl bg-slate-50 dark:bg-slate-900/50">
+            <div className="p-2 bg-[#F5F3FF] text-[#6C63FF] rounded-xl">
+              <BarChart3 size={18} />
             </div>
-            <p className="text-sm font-semibold text-slate-700">Vedi il tuo budget giornaliero</p>
-          </div>
-          <div className="flex items-center gap-4">
-            <div className="p-2 bg-orange-50 text-orange-600 rounded-xl">
-              <ReceiptText size={20} />
-            </div>
-            <p className="text-sm font-semibold text-slate-700">Traccia ogni spesa</p>
+            <p className="text-xs font-semibold text-[#1E1B3A] dark:text-[#F1F0FF]">Budget giornaliero dinamico</p>
           </div>
         </div>
 
         {/* Form */}
-        <form onSubmit={handleSubmit} className="space-y-6 pt-4">
+        <form onSubmit={handleSubmit} className="space-y-6 pt-2">
           <div className="space-y-4">
             <div className="space-y-2">
-              <Label htmlFor="amount" className="text-xs font-bold uppercase tracking-wider text-slate-400">Importo Stipendio</Label>
+              <Label htmlFor="amount" className="text-[11px] font-bold uppercase tracking-wider text-[#6B7280] dark:text-[#9CA3AF]">Importo Stipendio</Label>
               <div className="relative">
-                <span className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400 font-bold text-lg">€</span>
+                <span className="absolute left-4 top-1/2 -translate-y-1/2 text-[#1E1B3A] dark:text-[#F1F0FF] font-bold">€</span>
                 <Input 
                   id="amount"
                   type="number" 
                   placeholder="1600" 
-                  className="pl-10 h-14 rounded-2xl border-slate-100 bg-slate-50 focus:bg-white transition-all text-lg font-bold"
+                  className="pl-10 h-13 rounded-xl border-[1.5px] border-slate-200 dark:border-slate-800 bg-transparent focus:border-[#6C63FF] focus:ring-0 transition-all font-bold"
                   value={amount}
                   onChange={(e) => setAmount(e.target.value)}
                   required
@@ -80,11 +75,11 @@ const Onboarding = ({ onComplete }: OnboardingProps) => {
               </div>
             </div>
             <div className="space-y-2">
-              <Label htmlFor="date" className="text-xs font-bold uppercase tracking-wider text-slate-400">Data di ricezione</Label>
+              <Label htmlFor="date" className="text-[11px] font-bold uppercase tracking-wider text-[#6B7280] dark:text-[#9CA3AF]">Data di ricezione</Label>
               <Input 
                 id="date"
                 type="date" 
-                className="h-14 rounded-2xl border-slate-100 bg-slate-50 focus:bg-white transition-all font-medium"
+                className="h-13 rounded-xl border-[1.5px] border-slate-200 dark:border-slate-800 bg-transparent focus:border-[#6C63FF] focus:ring-0 transition-all font-medium"
                 value={date}
                 onChange={(e) => setDate(e.target.value)}
                 required
@@ -92,7 +87,7 @@ const Onboarding = ({ onComplete }: OnboardingProps) => {
             </div>
           </div>
 
-          <Button type="submit" className="w-full h-16 bg-green-500 hover:bg-green-600 text-white rounded-2xl font-black text-xl shadow-xl shadow-green-100 transition-all active:scale-95">
+          <Button type="submit" className="w-full h-[52px] bg-gradient-to-r from-[#6C63FF] to-[#A78BFA] hover:opacity-90 text-white rounded-xl font-bold text-lg shadow-lg shadow-[#6C63FF]/20 transition-all active:scale-95">
             Inizia ora
           </Button>
         </form>
