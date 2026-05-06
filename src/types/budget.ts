@@ -2,8 +2,6 @@ export type CategoryId =
   | 'casa' | 'cibo' | 'trasporti' | 'svago' | 'salute' | 'shopping' 
   | 'abbonamenti' | 'regali' | 'animali' | 'istruzione' | 'viaggi' | 'investimenti' | 'altro';
 
-export type BlobType = 'sparky' | 'gloomy' | 'bubbly';
-
 export interface Category {
   id: CategoryId;
   label: string;
@@ -47,7 +45,6 @@ export interface Settings {
   language: string;
   savingsGoal: number | null;
   notificationsEnabled: boolean;
-  selectedBlob: BlobType;
 }
 
 export interface BudgetData {

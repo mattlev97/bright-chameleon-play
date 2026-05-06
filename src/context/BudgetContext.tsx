@@ -1,11 +1,11 @@
 import React, { createContext, useContext, useState, useEffect, useMemo } from 'react';
-import { BudgetData, Expense, BlobType } from '../types/budget';
-import { differenceInDays, addMonths, format, parseISO, startOfDay } from 'date-fns';
+import { BudgetData, Expense, MonthSnapshot } from '../types/budget';
+import { differenceInDays, addMonths, format, parseISO, startOfDay, isSameDay, isAfter, endOfMonth } from 'date-fns';
 
 interface BudgetContextType {
   data: BudgetData;
   stats: any;
-  setSalary: (amount: number, date: string, blob?: BlobType) => void;
+  setSalary: (amount: number, date: string) => void;
   addExpense: (description: string, totalAmount: number, startDate: string, spreadDays: number, category: any, recurring: boolean) => void;
   updateExpense: (id: string, updates: Partial<Expense>) => void;
   deleteExpense: (id: string) => void;
@@ -15,7 +15,7 @@ interface BudgetContextType {
 
 const BudgetContext = createContext<BudgetContextType | undefined>(undefined);
 
-const STORAGE_KEY = 'daily_budget_v3';
+const STORAGE_KEY = 'daily_budget_premium_v1';
 
 const initialData: BudgetData = {
   salary: null,
@@ -25,7 +25,6 @@ const initialData: BudgetData = {
     language: 'it',
     savingsGoal: null,
     notificationsEnabled: false,
-    selectedBlob: 'sparky',
   },
   dailyHistory: [],
   history: [],
@@ -51,12 +50,16 @@ export const BudgetProvider: React.FC<{ children: React.ReactNode }> = ({ childr
     const totalDaysInMonth = Math.max(1, differenceInDays(nextSalaryDate, salaryDate));
     const daysPassed = Math.max(0, differenceInDays(today, salaryDate));
     
+    // Calcolo spese totali del mese
     const totalPlannedExpenses = currentData.expenses.reduce((acc, e) => acc + e.totalAmount, 0);
     const savingsGoal = currentData.settings.savingsGoal || 0;
 
+    // Il budget giornaliero è: (Stipendio - Spese Totali - Obiettivo Risparmio) / Giorni Rimasti
+    // Questo garantisce che se spendi esattamente il budget ogni giorno, a fine mese avrai risparmiato l'obiettivo.
     const totalAvailableForFreeSpending = currentData.salary.amount - totalPlannedExpenses - savingsGoal;
     const dailyBudget = Math.max(0, totalAvailableForFreeSpending / daysRemaining);
     
+    // Calcolo risparmio attuale (Stipendio - Spese effettivamente maturate finora)
     let accruedExpenses = 0;
     currentData.expenses.forEach(expense => {
       const expStart = startOfDay(parseISO(expense.startDate));
@@ -70,6 +73,7 @@ export const BudgetProvider: React.FC<{ children: React.ReactNode }> = ({ childr
     const currentSavings = currentData.salary.amount - accruedExpenses;
     const progress = Math.min(100, (daysPassed / totalDaysInMonth) * 100);
     
+    // Verifica se siamo in linea con l'obiettivo
     const expectedSavingsAtThisPoint = (savingsGoal / totalDaysInMonth) * daysPassed;
     const isOnTrack = currentSavings >= expectedSavingsAtThisPoint;
 
@@ -88,13 +92,12 @@ export const BudgetProvider: React.FC<{ children: React.ReactNode }> = ({ childr
 
   const stats = useMemo(() => calculateStats(data), [data]);
 
-  const setSalary = (amount: number, date: string, blob: BlobType = 'sparky') => {
+  const setSalary = (amount: number, date: string) => {
     const startDate = parseISO(date);
     const nextDate = addMonths(startDate, 1);
     setData(prev => ({
       ...prev,
       salary: { amount, date, nextDate: format(nextDate, 'yyyy-MM-dd') },
-      settings: { ...prev.settings, selectedBlob: blob }
     }));
   };
 
