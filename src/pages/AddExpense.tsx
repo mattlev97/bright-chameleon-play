@@ -7,9 +7,9 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Switch } from '@/components/ui/switch';
 import { Card } from '@/components/ui/card';
-import { ArrowLeft, Sparkles, Repeat } from 'lucide-react';
+import { ArrowLeft, Sparkles, Repeat, CalendarRange } from 'lucide-react';
 import { CategoryId } from '../types/budget';
-import { differenceInDays, endOfMonth, parseISO, startOfDay } from 'date-fns';
+import { differenceInDays, endOfMonth, parseISO } from 'date-fns';
 
 const CATEGORIES: { id: CategoryId; label: string; icon: string; color: string }[] = [
   { id: 'casa', label: 'Casa', icon: '🏠', color: '#6C63FF' },
@@ -38,25 +38,24 @@ const AddExpense = () => {
   const [description, setDescription] = useState(editExpense?.description || '');
   const [amount, setAmount] = useState(editExpense?.totalAmount.toString() || '');
   const [date, setDate] = useState(editExpense?.startDate || new Date().toISOString().split('T')[0]);
-  const [isSpread, setIsSpread] = useState(editExpense ? editExpense.spreadDays > 1 : false);
   const [days, setDays] = useState(editExpense?.spreadDays.toString() || '1');
   const [category, setCategory] = useState<CategoryId>(editExpense?.category || 'altro');
   const [recurring, setRecurring] = useState(editExpense?.recurring || false);
 
-  // Calcolo automatico giorni spalma
+  // Calcolo automatico giorni spalma se non è in modifica
   useEffect(() => {
-    if (isSpread && !editExpense) {
+    if (!editExpense) {
       const selectedDate = parseISO(date);
       const lastDay = endOfMonth(selectedDate);
       const remaining = differenceInDays(lastDay, selectedDate) + 1;
       setDays(remaining.toString());
     }
-  }, [isSpread, date]);
+  }, [date]);
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     if (description && amount) {
-      const spreadDays = isSpread ? parseInt(days) : 1;
+      const spreadDays = Math.max(1, parseInt(days));
       if (editId) {
         updateExpense(editId, {
           description,
@@ -73,7 +72,7 @@ const AddExpense = () => {
     }
   };
 
-  const dailyQuota = amount && days ? (parseFloat(amount) / (isSpread ? parseInt(days) : 1)).toFixed(2) : '0.00';
+  const dailyQuota = amount && days ? (parseFloat(amount) / Math.max(1, parseInt(days))).toFixed(2) : '0.00';
 
   return (
     <AppLayout>
@@ -153,32 +152,25 @@ const AddExpense = () => {
             </div>
 
             <div className="space-y-4">
-              <div className="flex items-center justify-between p-4 bg-[#F4F6FB] dark:bg-slate-900/50 rounded-2xl">
-                <div className="space-y-0.5">
-                  <Label className="text-sm font-bold text-[#1E1B3A] dark:text-[#F1F0FF]">Spalma su più giorni</Label>
-                  <p className="text-[11px] text-[#6B7280] dark:text-[#9CA3AF]">Dividi il costo nel tempo</p>
+              <div className="p-4 bg-[#F4F6FB] dark:bg-slate-900/50 rounded-2xl space-y-3">
+                <div className="flex items-center gap-2 text-[#6C63FF]">
+                  <CalendarRange size={18} />
+                  <Label className="text-sm font-bold">Spalmatura Spesa</Label>
                 </div>
-                <Switch 
-                  checked={isSpread}
-                  onCheckedChange={setIsSpread}
-                  className="data-[state=checked]:bg-[#6C63FF]"
-                />
-              </div>
-
-              {isSpread && (
-                <div className="space-y-2 animate-in slide-in-from-top-2 duration-300">
-                  <Label htmlFor="days" className="text-[11px] font-bold uppercase tracking-wider text-[#6B7280] dark:text-[#9CA3AF]">Numero di giorni</Label>
+                <div className="space-y-2">
+                  <p className="text-[11px] text-[#6B7280] dark:text-[#9CA3AF]">Su quanti giorni vuoi dividere questo costo?</p>
                   <Input 
                     id="days"
                     type="number" 
+                    min="1"
                     placeholder="30" 
-                    className="h-13 rounded-xl border-[1.5px] border-slate-200 dark:border-slate-800 bg-transparent focus:border-[#6C63FF] focus:ring-0 transition-all"
+                    className="h-12 rounded-xl border-[1.5px] border-slate-200 dark:border-slate-800 bg-white dark:bg-[#1A1830]"
                     value={days}
                     onChange={(e) => setDays(e.target.value)}
                     required
                   />
                 </div>
-              )}
+              </div>
 
               <div className="flex items-center justify-between p-4 bg-[#F4F6FB] dark:bg-slate-900/50 rounded-2xl">
                 <div className="space-y-0.5">
@@ -200,7 +192,7 @@ const AddExpense = () => {
           <Card className="p-6 bg-[#F5F3FF] dark:bg-[#6C63FF]/10 border-none rounded-[24px]">
             <div className="flex items-center gap-3 mb-4">
               <Sparkles size={18} className="text-[#6C63FF]" />
-              <span className="font-bold text-[#6C63FF] text-sm">Anteprima Quota</span>
+              <span className="font-bold text-[#6C63FF] text-sm">Quota Giornaliera</span>
             </div>
             <div className="flex justify-between items-end">
               <div>

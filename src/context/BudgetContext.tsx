@@ -1,11 +1,11 @@
 import React, { createContext, useContext, useState, useEffect, useMemo } from 'react';
 import { BudgetData, Expense, MascotId } from '../types/budget';
-import { differenceInDays, addMonths, format, parseISO, startOfDay } from 'date-fns';
+import { differenceInDays, addMonths, format, parseISO, startOfDay, endOfDay } from 'date-fns';
 
 interface BudgetContextType {
   data: BudgetData;
   stats: any;
-  setSalary: (amount: number, date: string, mascotId?: MascotId) => void;
+  setSalary: (amount: number, date: string, mascotId?: MascotId, savingsGoal?: number) => void;
   addExpense: (description: string, totalAmount: number, startDate: string, spreadDays: number, category: any, recurring: boolean) => void;
   updateExpense: (id: string, updates: Partial<Expense>) => void;
   deleteExpense: (id: string) => void;
@@ -43,10 +43,12 @@ export const BudgetProvider: React.FC<{ children: React.ReactNode }> = ({ childr
 
   const calculateStats = (currentData: BudgetData) => {
     if (!currentData.salary) return null;
+    
     const today = startOfDay(new Date());
     const nextSalaryDate = startOfDay(parseISO(currentData.salary.nextDate));
     const salaryDate = startOfDay(parseISO(currentData.salary.date));
     
+    // Calcolo giorni rimanenti reale
     const daysRemaining = Math.max(1, differenceInDays(nextSalaryDate, today));
     const totalDaysInMonth = Math.max(1, differenceInDays(nextSalaryDate, salaryDate));
     const daysPassed = Math.max(0, differenceInDays(today, salaryDate));
@@ -54,34 +56,36 @@ export const BudgetProvider: React.FC<{ children: React.ReactNode }> = ({ childr
     const totalPlannedExpenses = currentData.expenses.reduce((acc, e) => acc + e.totalAmount, 0);
     const savingsGoal = currentData.settings.savingsGoal || 0;
 
+    // Budget giornaliero = (Stipendio - Spese Totali - Obiettivo Risparmio) / Giorni Rimanenti
     const totalAvailableForFreeSpending = currentData.salary.amount - totalPlannedExpenses - savingsGoal;
     const dailyBudget = Math.max(0, totalAvailableForFreeSpending / daysRemaining);
     
+    // Calcolo risparmio corrente basato sulle spese effettivamente "accadute"
     let accruedExpenses = 0;
     currentData.expenses.forEach(expense => {
       const expStart = startOfDay(parseISO(expense.startDate));
-      const daysSinceStart = differenceInDays(today, expStart);
-      if (daysSinceStart >= 0) {
+      const daysSinceStart = differenceInDays(today, expStart) + 1; // +1 perché il primo giorno conta
+      
+      if (daysSinceStart > 0) {
         const daysToCharge = Math.min(daysSinceStart, expense.spreadDays);
         accruedExpenses += daysToCharge * expense.dailyQuota;
       }
     });
 
+    // Il risparmio attuale è lo stipendio meno quello che abbiamo già "consumato"
     const currentSavings = currentData.salary.amount - accruedExpenses;
     const progress = Math.min(100, (daysPassed / totalDaysInMonth) * 100);
     
+    // Siamo in linea se quello che ci resta è >= a quello che dovremmo avere (Stipendio - Spese Proporzionali - Risparmio Proporzionale)
+    const expectedExpensesAtThisPoint = (totalPlannedExpenses / totalDaysInMonth) * daysPassed;
     const expectedSavingsAtThisPoint = (savingsGoal / totalDaysInMonth) * daysPassed;
-    const isOnTrack = currentSavings >= expectedSavingsAtThisPoint;
+    
+    // Semplifichiamo: siamo in linea se il risparmio attuale è coerente con l'obiettivo
+    const isOnTrack = currentSavings >= (currentData.salary.amount - expectedExpensesAtThisPoint - expectedSavingsAtThisPoint);
 
-    // Logica per lo stato della mascotte
     let mascotState: 'happy' | 'neutral' | 'sad' = 'neutral';
-    if (savingsGoal > 0) {
-      if (currentSavings > expectedSavingsAtThisPoint + 50) mascotState = 'happy';
-      else if (currentSavings < expectedSavingsAtThisPoint - 20) mascotState = 'sad';
-    } else {
-      if (dailyBudget > 50) mascotState = 'happy';
-      else if (dailyBudget < 10) mascotState = 'sad';
-    }
+    if (dailyBudget > 40) mascotState = 'happy';
+    else if (dailyBudget < 15) mascotState = 'sad';
 
     return { 
       dailyBudget, 
@@ -99,13 +103,17 @@ export const BudgetProvider: React.FC<{ children: React.ReactNode }> = ({ childr
 
   const stats = useMemo(() => calculateStats(data), [data]);
 
-  const setSalary = (amount: number, date: string, mascotId?: MascotId) => {
+  const setSalary = (amount: number, date: string, mascotId?: MascotId, savingsGoal?: number) => {
     const startDate = parseISO(date);
     const nextDate = addMonths(startDate, 1);
     setData(prev => ({
       ...prev,
       salary: { amount, date, nextDate: format(nextDate, 'yyyy-MM-dd') },
-      settings: { ...prev.settings, mascotId: mascotId || prev.settings.mascotId }
+      settings: { 
+        ...prev.settings, 
+        mascotId: mascotId || prev.settings.mascotId,
+        savingsGoal: savingsGoal !== undefined ? savingsGoal : prev.settings.savingsGoal
+      }
     }));
   };
 

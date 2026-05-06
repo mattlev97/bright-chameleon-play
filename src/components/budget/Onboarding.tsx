@@ -2,17 +2,18 @@ import React, { useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { Wallet, PiggyBank, BarChart3, Check } from 'lucide-react';
+import { Wallet, Check, Target } from 'lucide-react';
 import MascotBlob from './MascotBlob';
 import { MascotId } from '../../types/budget';
 
 interface OnboardingProps {
-  onComplete: (amount: number, date: string, mascotId: MascotId) => void;
+  onComplete: (amount: number, date: string, mascotId: MascotId, savingsGoal: number) => void;
 }
 
 const Onboarding = ({ onComplete }: OnboardingProps) => {
   const [step, setStep] = useState(1);
   const [amount, setAmount] = useState('');
+  const [savingsGoal, setSavingsGoal] = useState('');
   const [date, setDate] = useState(new Date().toISOString().split('T')[0]);
   const [selectedMascot, setSelectedMascot] = useState<MascotId>('classic');
 
@@ -22,29 +23,31 @@ const Onboarding = ({ onComplete }: OnboardingProps) => {
       setStep(2);
     } else {
       if (amount && date) {
-        onComplete(parseFloat(amount), date, selectedMascot);
+        onComplete(
+          parseFloat(amount), 
+          date, 
+          selectedMascot, 
+          savingsGoal ? parseFloat(savingsGoal) : 0
+        );
       }
     }
   };
 
   return (
     <div className="min-h-screen flex flex-col bg-[#F4F6FB] dark:bg-[#0F0E1A]">
-      <div className="h-[35vh] bg-gradient-to-br from-[#6C63FF] to-[#A78BFA] flex flex-col items-center justify-center text-white p-6 relative overflow-hidden">
+      <div className="h-[30vh] bg-gradient-to-br from-[#6C63FF] to-[#A78BFA] flex flex-col items-center justify-center text-white p-6 relative overflow-hidden">
         <div className="absolute -top-20 -left-20 w-64 h-64 bg-white/10 rounded-full blur-3xl" />
-        <div className="bg-white/20 p-5 rounded-[2.5rem] backdrop-blur-md mb-4 animate-in zoom-in duration-700 shadow-2xl">
-          <Wallet size={48} strokeWidth={1.5} />
-        </div>
         <h1 className="text-3xl font-bold tracking-tight">DailyBudget</h1>
-        <p className="text-white/80 font-medium mt-1">Finanza personale premium</p>
+        <p className="text-white/80 font-medium mt-1">Configura il tuo mese</p>
       </div>
 
       <div className="flex-1 bg-white dark:bg-[#1A1830] rounded-t-[32px] -mt-10 p-8 space-y-8 shadow-[0_-8px_32px_rgba(0,0,0,0.05)] relative z-10">
         {step === 1 ? (
           <>
             <div className="space-y-2">
-              <h2 className="text-2xl font-bold text-[#1E1B3A] dark:text-[#F1F0FF]">Iniziamo!</h2>
+              <h2 className="text-2xl font-bold text-[#1E1B3A] dark:text-[#F1F0FF]">Dati Finanziari</h2>
               <p className="text-[#6B7280] dark:text-[#9CA3AF] text-sm leading-relaxed">
-                Inserisci le tue informazioni base per calcolare il tuo budget giornaliero.
+                Inserisci lo stipendio e quanto vorresti mettere da parte questo mese.
               </p>
             </div>
 
@@ -64,6 +67,21 @@ const Onboarding = ({ onComplete }: OnboardingProps) => {
                     />
                   </div>
                 </div>
+
+                <div className="space-y-2">
+                  <Label className="text-[11px] font-bold uppercase tracking-wider text-[#6B7280]">Obiettivo Risparmio</Label>
+                  <div className="relative">
+                    <span className="absolute left-4 top-1/2 -translate-y-1/2 text-[#6C63FF] font-bold">€</span>
+                    <Input 
+                      type="number" 
+                      placeholder="200" 
+                      className="pl-10 h-13 rounded-xl border-[1.5px] border-[#6C63FF]/30 bg-[#F5F3FF] dark:bg-[#6C63FF]/5 font-bold text-[#6C63FF]"
+                      value={savingsGoal}
+                      onChange={(e) => setSavingsGoal(e.target.value)}
+                    />
+                  </div>
+                </div>
+
                 <div className="space-y-2">
                   <Label className="text-[11px] font-bold uppercase tracking-wider text-[#6B7280]">Data di ricezione</Label>
                   <Input 
@@ -85,7 +103,7 @@ const Onboarding = ({ onComplete }: OnboardingProps) => {
             <div className="space-y-2">
               <h2 className="text-2xl font-bold text-[#1E1B3A] dark:text-[#F1F0FF]">Scegli il tuo Bibi</h2>
               <p className="text-[#6B7280] dark:text-[#9CA3AF] text-sm leading-relaxed">
-                Questa mascotte rifletterà la tua salute finanziaria. Scegli quella che preferisci.
+                Questa mascotte rifletterà la tua salute finanziaria.
               </p>
             </div>
 
