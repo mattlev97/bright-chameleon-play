@@ -41,7 +41,7 @@ export const BudgetProvider: React.FC<{ children: React.ReactNode }> = ({ childr
     return saved ? JSON.parse(saved) : initialData;
   });
 
-  const [history, setHistory] = useState<BudgetData[]>(() => {
+  const [history, setHistoryState] = useState<BudgetData[]>(() => {
     const saved = localStorage.getItem(HISTORY_KEY);
     return saved ? JSON.parse(saved) : [];
   });
@@ -73,7 +73,8 @@ export const BudgetProvider: React.FC<{ children: React.ReactNode }> = ({ childr
     startDate: string,
     spreadDays: number,
     category: string,
-    recurring: boolean  ) => {
+    recurring: boolean
+  ) => {
     const dailyQuota = totalAmount / spreadDays;
     const newExpense: Expense = {
       id: crypto.randomUUID(),
@@ -84,7 +85,6 @@ export const BudgetProvider: React.FC<{ children: React.ReactNode }> = ({ childr
       dailyQuota,
       category,
       recurring,
-      color: '#6C63FF',
     };
     setData(prev => ({
       ...prev,
@@ -105,7 +105,7 @@ export const BudgetProvider: React.FC<{ children: React.ReactNode }> = ({ childr
     setData(prev => ({ ...prev, settings: { ...prev.settings, ...settings } }));
 
   const getHistory = () => history;
-  const setHistory = (newHistory: BudgetData[]) => setHistory(newHistory);
+  const setHistory = (newHistory: BudgetData[]) => setHistoryState(newHistory);
 
   const stats = useMemo(() => {
     if (!data.salary) return null;
@@ -130,37 +130,23 @@ export const BudgetProvider: React.FC<{ children: React.ReactNode }> = ({ childr
     const daysPassed = differenceInDays(today, salaryDate);
     const progress = Math.min(100, Math.max(0, (daysPassed / totalDaysInMonth) * 100));
 
-    // Daily history tracking
-    const todayKey = today.toISOString().split('T')[0];
-    const dailyHistory = JSON.parse(localStorage.getItem('dailyHistory') || '[]');
-    const existing = dailyHistory.find(h => h.date === todayKey);
-    if (existing) {
-      existing.budget = dailyBudget;
-    } else {
-      dailyHistory.push({ date: todayKey, budget: dailyBudget });
-      localStorage.setItem('dailyHistory', JSON.stringify(dailyHistory));
-    }
-
     return { dailyBudget, availableBalance, daysRemaining, progress };
   }, [data]);
 
-  // Handle recurring expenses at salary change
   useEffect(() => {
     if (!data.salary) return;
     
     const currentExpenses = [...data.expenses];
     const recurringExpenses = currentExpenses.filter(e => e.recurring);
-        recurringExpenses.forEach(expense => {
+    recurringExpenses.forEach(expense => {
       const expenseDate = parseISO(expense.startDate);
       const nextMonthDate = new Date(expenseDate.getFullYear(), expenseDate.getMonth() + 1, expenseDate.getDate());
       if (nextMonthDate <= startOfDay(new Date())) {
-        // Create next month instance
         const nextMonthExpense = {
           ...expense,
           id: crypto.randomUUID(),
           startDate: format(nextMonthDate, 'yyyy-MM-dd'),
         };
-        // Add to new data after resetting expenses
         setData(prev => ({
           ...prev,
           expenses: [...prev.expenses, nextMonthExpense],
@@ -171,7 +157,8 @@ export const BudgetProvider: React.FC<{ children: React.ReactNode }> = ({ childr
 
   return (
     <BudgetContext.Provider value={{ 
-      data,       stats, 
+      data, 
+      stats, 
       setSalary, 
       addExpense, 
       deleteExpense, 
