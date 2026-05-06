@@ -71,6 +71,13 @@ const Index = () => {
   const [longPressedExpense, setLongPressedExpense] = useState<any | null>(null);
   const timerRef = useRef<NodeJS.Timeout | null>(null);
 
+  // Effetto per scrollare in alto quando Bibi reagisce
+  useEffect(() => {
+    if (reaction) {
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+    }
+  }, [reaction]);
+
   useEffect(() => {
     if (data.salary && !data.settings.notificationsEnabled && !localStorage.getItem('notify_prompt_shown')) {
       const timer = setTimeout(() => setShowNotifyPrompt(true), 2000);
