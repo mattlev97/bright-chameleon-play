@@ -10,7 +10,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 
 export const AIChat = () => {
   const { stats } = useBudget();
-  const { loadModel, askBibi, loading, ready, progress } = useAI();
+  const { loadModel, askBibi, loading, ready, progress, status } = useAI();
   const [isOpen, setIsOpen] = useState(false);
   const [input, setInput] = useState('');
   const [messages, setMessages] = useState<{role: 'user' | 'bibi', text: string}[]>([
@@ -36,9 +36,7 @@ export const AIChat = () => {
     setInput('');
     setMessages(prev => [...prev, { role: 'user', text: userMsg }]);
 
-    const context = `L'utente ha un budget giornaliero di €${stats.dailyBudget.toFixed(2)}. 
-    Mancano ${stats.daysRemaining} giorni allo stipendio. 
-    Il risparmio attuale è €${stats.currentSavings.toFixed(2)} su un obiettivo di €${stats.savingsGoal}.`;
+    const context = `Budget oggi: €${stats.dailyBudget.toFixed(2)}. Giorni rimasti: ${stats.daysRemaining}. Risparmio: €${stats.currentSavings.toFixed(2)}.`;
 
     const response = await askBibi(userMsg, context);
     setMessages(prev => [...prev, { role: 'bibi', text: response }]);
@@ -91,11 +89,10 @@ export const AIChat = () => {
                       <Loader2 className="animate-spin text-[#6C63FF]" size={40} />
                       <Sparkles className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 text-[#A78BFA]" size={16} />
                     </div>
-                    <div className="space-y-2">
-                      <p className="text-sm font-bold text-[#1E1B3A] dark:text-[#F1F0FF]">Sto caricando il mio cervello...</p>
-                      <p className="text-[11px] text-slate-400">Scarico il modello IA locale (~80MB). Verrà salvato nella cache del tuo browser.</p>
+                    <div className="space-y-2 w-full">
+                      <p className="text-sm font-bold text-[#1E1B3A] dark:text-[#F1F0FF]">{status}</p>
+                      <p className="text-[11px] text-slate-400">Il primo avvio richiede il download del modello (~80MB). Poi sarà istantaneo.</p>
                       <Progress value={progress} className="h-1.5" />
-                      <p className="text-[10px] font-bold text-[#6C63FF]">{Math.round(progress)}%</p>
                     </div>
                   </div>
                 )}

@@ -6,24 +6,36 @@ export function useAI() {
   const [loading, setLoading] = useState(false);
   const [ready, setReady] = useState(false);
   const [progress, setProgress] = useState(0);
+  const [status, setStatus] = useState('');
 
   const loadModel = useCallback(async () => {
     if (generator || loading) return;
     
     setLoading(true);
+    setStatus('Inizializzazione...');
+    
     try {
-      // Utilizziamo un modello estremamente leggero (78M parametri, ~80MB)
-      // Ottimizzato per task di text-to-text generation
       const pipe = await pipeline('text2text-generation', 'Xenova/LaMini-Flan-T5-78M', {
         progress_callback: (p: any) => {
-          if (p.status === 'progress') setProgress(p.progress);
+          if (p.status === 'progress') {
+            setProgress(p.progress);
+            setStatus(`Scaricando componenti... ${Math.round(p.progress)}%`);
+          } else if (p.status === 'done') {
+            setStatus('Elaborazione file...');
+          } else if (p.status === 'init') {
+            setStatus('Avvio motore IA...');
+          } else if (p.status === 'ready') {
+            setStatus('Bibi è pronta!');
+          }
         }
       });
       
       setGenerator(() => pipe);
       setReady(true);
+      setStatus('Pronto');
     } catch (err) {
       console.error("Errore caricamento AI locale:", err);
+      setStatus('Errore nel caricamento');
     } finally {
       setLoading(false);
     }
@@ -33,14 +45,13 @@ export function useAI() {
     if (!generator) return "Sto ancora caricando il mio cervello... riprova tra un istante!";
     
     try {
-      // Costruiamo un prompt che dia personalità a Bibi e fornisca il contesto finanziario
-      const fullPrompt = `System: You are Bibi, a friendly financial assistant for a budget app. 
+      const fullPrompt = `System: You are Bibi, a helpful financial assistant. Answer in Italian if possible.
       Context: ${context}
       User: ${prompt}
       Bibi:`;
 
       const output = await generator(fullPrompt, {
-        max_new_tokens: 60,
+        max_new_tokens: 100,
         temperature: 0.7,
         repetition_penalty: 1.2,
       });
@@ -52,5 +63,5 @@ export function useAI() {
     }
   };
 
-  return { loadModel, askBibi, loading, ready, progress };
+  return { loadModel, askBibi, loading, ready, progress, status };
 }
