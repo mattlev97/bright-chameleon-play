@@ -18,16 +18,17 @@ const AppLayout = ({ children }: { children: React.ReactNode }) => {
             isActive ? "text-[#6C63FF]" : "text-[#9CA3AF] hover:text-slate-600"
           )}
         >
-          <Home size={22} strokeWidth={isActive ? 2.5 : 2} />
-          <span className="text-[11px] font-medium">Home</span>
+          {({ isActive }) => (
+            <>
+              <Home size={22} strokeWidth={isActive ? 2.5 : 2} />
+              <span className="text-[11px] font-medium">Home</span>
+            </>
+          )}
         </NavLink>
 
         <NavLink 
           to="/add" 
-          className={({ isActive }) => cn(
-            "flex items-center justify-center -mt-14 w-14 h-14 rounded-full text-white shadow-xl transition-all duration-300 active:scale-90",
-            "bg-gradient-to-br from-[#6C63FF] to-[#A78BFA] shadow-[#6C63FF]/40"
-          )}
+          className="flex items-center justify-center -mt-14 w-14 h-14 rounded-full text-white shadow-xl transition-all duration-300 active:scale-90 bg-gradient-to-br from-[#6C63FF] to-[#A78BFA] shadow-[#6C63FF]/40"
         >
           <Plus size={32} strokeWidth={2.5} />
         </NavLink>
@@ -39,8 +40,12 @@ const AppLayout = ({ children }: { children: React.ReactNode }) => {
             isActive ? "text-[#6C63FF]" : "text-[#9CA3AF] hover:text-slate-600"
           )}
         >
-          <SettingsIcon size={22} strokeWidth={isActive ? 2.5 : 2} />
-          <span className="text-[11px] font-medium">Impostazioni</span>
+          {({ isActive }) => (
+            <>
+              <SettingsIcon size={22} strokeWidth={isActive ? 2.5 : 2} />
+              <span className="text-[11px] font-medium">Impostazioni</span>
+            </>
+          )}
         </NavLink>
       </nav>
     </div>
