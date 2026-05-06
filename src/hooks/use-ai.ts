@@ -1,11 +1,10 @@
 "use client";
 
 import { useState, useCallback } from 'react';
-import { pipeline, env } from '@xenova/transformers';
+import { pipeline, env } from '@huggingface/transformers';
 
-// Reset totale delle configurazioni per usare i default della libreria
+// Configurazione per WebGPU
 env.allowLocalModels = false;
-env.useBrowserCache = true;
 
 export function useAI() {
   const [generator, setGenerator] = useState<any>(null);
@@ -25,7 +24,7 @@ export function useAI() {
       }
       setError(false);
       setProgress(0);
-      setStatus('Cache pulita. Riprova.');
+      setStatus('Cache pulita.');
     } catch (e) {
       console.error("Errore cache:", e);
     }
@@ -36,44 +35,68 @@ export function useAI() {
     
     setLoading(true);
     setError(false);
-    setStatus('Inizializzazione...');
+    setStatus('Inizializzazione WebGPU...');
     
     try {
-      // Usiamo un modello leggermente diverso e molto stabile
-      const pipe = await pipeline('text2text-generation', 'Xenova/LaMini-Flan-T5-78M', {
+      // Usiamo SmolLM-135M-Instruct: piccolo, veloce e ottimizzato per WebGPU
+      const pipe = await pipeline('text-generation', 'HuggingFaceTB/SmolLM2-135M-Instruct', {
+        device: 'webgpu', // Forza l'uso della GPU se disponibile
         progress_callback: (p: any) => {
           if (p.status === 'progress') {
             setProgress(Math.round(p.progress));
-            setStatus(`Scaricamento: ${Math.round(p.progress)}%`);
+            setStatus(`Download Modello: ${Math.round(p.progress)}%`);
           } else if (p.status === 'ready') {
+            setStatus('Bibi è pronta (WebGPU)!');
             setReady(true);
             setLoading(false);
-            setStatus('Bibi è pronta!');
           }
         }
       });
       
       setGenerator(() => pipe);
     } catch (err) {
-      console.error("Errore critico Bibi AI:", err);
-      setError(true);
-      setLoading(false);
-      setStatus('Errore di rete');
+      console.warn("WebGPU non supportato o errore, provo fallback WASM...", err);
+      try {
+        // Fallback su CPU (WASM) se WebGPU fallisce
+        const pipe = await pipeline('text-generation', 'HuggingFaceTB/SmolLM2-135M-Instruct', {
+          device: 'wasm',
+          progress_callback: (p: any) => {
+            if (p.status === 'progress') {
+              setProgress(Math.round(p.progress));
+              setStatus(`Download (Fallback): ${Math.round(p.progress)}%`);
+            }
+          }
+        });
+        setGenerator(() => pipe);
+        setReady(true);
+        setLoading(false);
+      } catch (fallbackErr) {
+        console.error("Errore totale:", fallbackErr);
+        setError(true);
+        setLoading(false);
+        setStatus('Errore di caricamento');
+      }
     }
   }, [generator, loading, ready]);
 
   const askBibi = async (prompt: string, context: string) => {
     if (!generator) return "Non sono ancora pronta!";
     try {
-      const fullPrompt = `Rispondi in italiano. Contest: ${context} Utente: ${prompt} Bibi:`;
-      const output = await generator(fullPrompt, { 
-        max_new_tokens: 50, 
-        temperature: 0.7,
-        repetition_penalty: 1.2
+      const messages = [
+        { role: "system", content: `Sei Bibi, un assistente finanziario gentile. Rispondi in italiano in modo breve. ${context}` },
+        { role: "user", content: prompt }
+      ];
+
+      const output = await generator(messages, { 
+        max_new_tokens: 100,
+        temperature: 0.6,
+        do_sample: true
       });
-      return output[0].generated_text;
+      
+      return output[0].generated_text[output[0].generated_text.length - 1].content;
     } catch (err) {
-      return "Errore nella generazione. Riprova?";
+      console.error("Generation error:", err);
+      return "Ho avuto un piccolo corto circuito. Riprova?";
     }
   };
 
