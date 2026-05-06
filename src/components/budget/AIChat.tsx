@@ -89,10 +89,16 @@ export const AIChat = () => {
                       <Loader2 className="animate-spin text-[#6C63FF]" size={40} />
                       <Sparkles className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 text-[#A78BFA]" size={16} />
                     </div>
-                    <div className="space-y-2 w-full">
-                      <p className="text-sm font-bold text-[#1E1B3A] dark:text-[#F1F0FF]">{status}</p>
-                      <p className="text-[11px] text-slate-400">Il primo avvio richiede il download del modello (~80MB). Poi sarà istantaneo.</p>
-                      <Progress value={progress} className="h-1.5" />
+                    <div className="space-y-3 w-full">
+                      <div className="flex justify-between items-end">
+                        <p className="text-xs font-bold text-[#1E1B3A] dark:text-[#F1F0FF] truncate max-w-[180px]">{status}</p>
+                        <p className="text-[10px] font-bold text-[#6C63FF]">{progress}%</p>
+                      </div>
+                      <Progress value={progress} className="h-2 bg-slate-100 dark:bg-slate-800" />
+                      <p className="text-[10px] text-slate-400 leading-relaxed">
+                        Sto scaricando il mio cervello locale (~80MB). <br/>
+                        Una volta completato, funzionerò anche senza internet!
+                      </p>
                     </div>
                   </div>
                 )}

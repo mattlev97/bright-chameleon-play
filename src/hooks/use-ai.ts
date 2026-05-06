@@ -14,17 +14,40 @@ export function useAI() {
     setLoading(true);
     setStatus('Inizializzazione...');
     
+    // Mappa per tracciare il progresso di ogni singolo file
+    const fileProgress: Record<string, number> = {};
+    
     try {
       const pipe = await pipeline('text2text-generation', 'Xenova/LaMini-Flan-T5-78M', {
         progress_callback: (p: any) => {
           if (p.status === 'progress') {
-            setProgress(p.progress);
-            setStatus(`Scaricando componenti... ${Math.round(p.progress)}%`);
+            // Salviamo il progresso del file specifico
+            fileProgress[p.file] = p.progress;
+            
+            // Calcoliamo una media pesata. Sappiamo che ci sono circa 5-7 file.
+            // Il file del modello è quello che pesa il 95% del totale.
+            const fileNames = Object.keys(fileProgress);
+            const totalFiles = fileNames.length;
+            
+            // Se stiamo scaricando il file principale (solitamente finisce in .bin o .safetensors)
+            // gli diamo più importanza nel calcolo del progresso
+            const isMainModel = p.file.includes('model') || p.file.includes('weights');
+            
+            if (isMainModel) {
+              // Il modello principale guida la barra dal 10% al 100%
+              const globalProgress = 10 + (p.progress * 0.9);
+              setProgress(Math.round(globalProgress));
+            } else {
+              // I file piccoli (config, tokenizer) occupano il primo 10%
+              const smallFilesProgress = (totalFiles / 5) * 10;
+              setProgress(Math.min(10, Math.round(smallFilesProgress)));
+            }
+
+            setStatus(`Scaricando ${p.file}... ${Math.round(p.progress)}%`);
           } else if (p.status === 'done') {
-            setStatus('Elaborazione file...');
-          } else if (p.status === 'init') {
-            setStatus('Avvio motore IA...');
+            setStatus(`Completato: ${p.file}`);
           } else if (p.status === 'ready') {
+            setProgress(100);
             setStatus('Bibi è pronta!');
           }
         }
@@ -32,7 +55,6 @@ export function useAI() {
       
       setGenerator(() => pipe);
       setReady(true);
-      setStatus('Pronto');
     } catch (err) {
       console.error("Errore caricamento AI locale:", err);
       setStatus('Errore nel caricamento');
@@ -45,7 +67,7 @@ export function useAI() {
     if (!generator) return "Sto ancora caricando il mio cervello... riprova tra un istante!";
     
     try {
-      const fullPrompt = `System: You are Bibi, a helpful financial assistant. Answer in Italian if possible.
+      const fullPrompt = `System: You are Bibi, a helpful financial assistant. Answer in Italian.
       Context: ${context}
       User: ${prompt}
       Bibi:`;
