@@ -8,6 +8,7 @@ import Index from "./pages/Index";
 import AddExpense from "./pages/AddExpense";
 import Settings from "./pages/Settings";
 import Summary from "./pages/Summary";
+import Trophies from "./pages/Trophies";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -23,6 +24,7 @@ const App = () => (
             <Route path="/" element={<Index />} />
             <Route path="/add" element={<AddExpense />} />
             <Route path="/summary" element={<Summary />} />
+            <Route path="/trophies" element={<Trophies />} />
             <Route path="/settings" element={<Settings />} />
             <Route path="*" element={<NotFound />} />
           </Routes>

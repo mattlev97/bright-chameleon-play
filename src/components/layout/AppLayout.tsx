@@ -1,6 +1,6 @@
 import React from 'react';
 import { NavLink } from 'react-router-dom';
-import { Home, Plus, Settings as SettingsIcon, PieChart } from 'lucide-react';
+import { Home, Plus, Settings as SettingsIcon, PieChart, Trophy } from 'lucide-react';
 import { cn } from '@/lib/utils';
 
 const AppLayout = ({ children }: { children: React.ReactNode }) => {
@@ -10,7 +10,7 @@ const AppLayout = ({ children }: { children: React.ReactNode }) => {
         {children}
       </main>
       
-      <nav className="fixed bottom-0 left-1/2 -translate-x-1/2 w-full max-w-md bg-white/90 dark:bg-[#1A1830]/90 backdrop-blur-xl border-t border-slate-200/50 dark:border-slate-800/50 px-4 py-4 flex justify-between items-center z-50">
+      <nav className="fixed bottom-0 left-1/2 -translate-x-1/2 w-full max-w-md bg-white/90 dark:bg-[#1A1830]/90 backdrop-blur-xl border-t border-slate-200/50 dark:border-slate-800/50 px-2 py-4 flex justify-around items-center z-50">
         <NavLink 
           to="/" 
           className={({ isActive }) => cn(
@@ -36,7 +36,7 @@ const AppLayout = ({ children }: { children: React.ReactNode }) => {
           {({ isActive }) => (
             <>
               <PieChart size={20} strokeWidth={isActive ? 2.5 : 2} />
-              <span className="text-[10px] font-medium">Riepilogo</span>
+              <span className="text-[10px] font-medium">Analisi</span>
             </>
           )}
         </NavLink>
@@ -50,7 +50,20 @@ const AppLayout = ({ children }: { children: React.ReactNode }) => {
           </NavLink>
         </div>
 
-        <div className="flex-1" /> {/* Spacer */}
+        <NavLink 
+          to="/trophies" 
+          className={({ isActive }) => cn(
+            "flex flex-col items-center gap-1 transition-all duration-300 flex-1",
+            isActive ? "text-[#6C63FF]" : "text-[#9CA3AF] hover:text-slate-600"
+          )}
+        >
+          {({ isActive }) => (
+            <>
+              <Trophy size={20} strokeWidth={isActive ? 2.5 : 2} />
+              <span className="text-[10px] font-medium">Trofei</span>
+            </>
+          )}
+        </NavLink>
 
         <NavLink 
           to="/settings" 
@@ -62,7 +75,7 @@ const AppLayout = ({ children }: { children: React.ReactNode }) => {
           {({ isActive }) => (
             <>
               <SettingsIcon size={20} strokeWidth={isActive ? 2.5 : 2} />
-              <span className="text-[10px] font-medium">Impostazioni</span>
+              <span className="text-[10px] font-medium">Menu</span>
             </>
           )}
         </NavLink>
