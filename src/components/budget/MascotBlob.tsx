@@ -38,9 +38,12 @@ const MascotBlob = ({ state, type, size = 100 }: MascotBlobProps) => {
       transition: { duration: 0.3, type: "spring" }
     },
     shocked: {
-      scale: [1, 1.2, 0.9, 1],
-      x: [-2, 2, -2, 2, 0],
-      transition: { duration: 0.4 }
+      x: [-1, 1, -1, 1, 0],
+      transition: { 
+        duration: 0.1, 
+        repeat: 10,
+        ease: "linear"
+      }
     }
   };
 
@@ -49,7 +52,7 @@ const MascotBlob = ({ state, type, size = 100 }: MascotBlobProps) => {
     neutral: "fill-[#C4B5FD] dark:fill-[#7C3AED]",
     sad: "fill-[#DDD6FE] dark:fill-[#6D28D9]",
     concerned: "fill-[#F59E0B] dark:fill-[#D97706]",
-    shocked: "fill-[#EF4444] dark:fill-[#B91C1C]"
+    shocked: "fill-[#FCA5A5] dark:fill-[#F87171]" // Rosso più soft
   };
 
   return (
@@ -73,8 +76,8 @@ const MascotBlob = ({ state, type, size = 100 }: MascotBlobProps) => {
             </>
           ) : state === 'shocked' ? (
             <>
-              <circle cx="35" cy="45" r="6" fill="white" />
-              <circle cx="65" cy="45" r="6" fill="white" />
+              <circle cx="35" cy="45" r="5" fill="white" />
+              <circle cx="65" cy="45" r="5" fill="white" />
               <circle cx="35" cy="45" r="2" fill="black" />
               <circle cx="65" cy="45" r="2" fill="black" />
             </>
@@ -101,7 +104,7 @@ const MascotBlob = ({ state, type, size = 100 }: MascotBlobProps) => {
           {state === 'happy' ? (
             <path d="M42,60 Q50,68 58,60" fill="none" strokeWidth="3" strokeLinecap="round" />
           ) : state === 'shocked' ? (
-            <circle cx="50" cy="65" r="5" fill="none" strokeWidth="2.5" />
+            <circle cx="50" cy="65" r="4" fill="none" strokeWidth="2.5" />
           ) : state === 'concerned' ? (
             <path d="M45,65 Q50,62 55,65" fill="none" strokeWidth="2.5" strokeLinecap="round" />
           ) : state === 'sad' ? (
