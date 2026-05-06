@@ -4,6 +4,7 @@ import { useBudget } from '../hooks/use-budget';
 import AppLayout from '../components/layout/AppLayout';
 import Onboarding from '../components/budget/Onboarding';
 import NotificationPrompt from '../components/budget/NotificationPrompt';
+import MascotBlob from '../components/budget/MascotBlob';
 import { Card } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
@@ -184,7 +185,6 @@ const Index = () => {
         </DialogContent>
       </Dialog>
 
-      {/* Dialog per il Breakdown del Calcolo */}
       <Dialog open={showBreakdown} onOpenChange={setShowBreakdown}>
         <DialogContent className="rounded-[32px] max-w-[90%] mx-auto p-8">
           <DialogHeader>
@@ -256,6 +256,15 @@ const Index = () => {
           >
             <Info size={20} />
           </button>
+        </div>
+
+        {/* Mascotte Bibi */}
+        <div className="flex justify-center -mb-12 relative z-20">
+          <MascotBlob 
+            type={data.settings.mascotId} 
+            state={stats.mascotState} 
+            size={120} 
+          />
         </div>
 
         <Card className="p-6 bg-gradient-to-br from-[#6C63FF] to-[#A78BFA] border-none shadow-[0_8px_32px_rgba(108,99,255,0.25)] rounded-[24px] relative overflow-hidden">
