@@ -1,4 +1,4 @@
-const CACHE_NAME = 'budget-pwa-v1';
+const CACHE_NAME = 'budget-pwa-v2';
 const ASSETS = [
   '/',
   '/index.html',
@@ -20,4 +20,31 @@ self.addEventListener('fetch', (event) => {
       return response || fetch(event.request);
     })
   );
+});
+
+// Logica Notifiche Mattutine
+const scheduleNextNotification = () => {
+  const now = new Date();
+  const nextNine = new Date();
+  nextNine.setHours(9, 0, 0, 0);
+  
+  if (now > nextNine) {
+    nextNine.setDate(nextNine.getDate() + 1);
+  }
+  
+  const delay = nextNine.getTime() - now.getTime();
+  
+  setTimeout(() => {
+    self.registration.showNotification('Il tuo budget di oggi', {
+      body: 'Controlla quanto puoi spendere oggi per restare nei tuoi obiettivi!',
+      icon: '/placeholder.svg',
+      badge: '/placeholder.svg',
+      tag: 'daily-budget-reminder'
+    });
+    scheduleNextNotification();
+  }, delay);
+};
+
+self.addEventListener('activate', (event) => {
+  scheduleNextNotification();
 });

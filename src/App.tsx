@@ -7,6 +7,7 @@ import { BudgetProvider } from "./context/BudgetContext";
 import Index from "./pages/Index";
 import AddExpense from "./pages/AddExpense";
 import Settings from "./pages/Settings";
+import Summary from "./pages/Summary";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -21,6 +22,7 @@ const App = () => (
           <Routes>
             <Route path="/" element={<Index />} />
             <Route path="/add" element={<AddExpense />} />
+            <Route path="/summary" element={<Summary />} />
             <Route path="/settings" element={<Settings />} />
             <Route path="*" element={<NotFound />} />
           </Routes>

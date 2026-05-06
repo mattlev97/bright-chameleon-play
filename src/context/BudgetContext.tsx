@@ -1,12 +1,12 @@
 import React, { createContext, useContext, useState, useEffect, useMemo } from 'react';
-import { BudgetData, Expense, Salary } from '../types/budget';
-import { differenceInDays, addMonths, format, parseISO, startOfDay } from 'date-fns';
+import { BudgetData, Expense, MonthSnapshot, DailyHistory } from '../types/budget';
+import { differenceInDays, addMonths, format, parseISO, startOfDay, isSameDay, isAfter } from 'date-fns';
 
 interface BudgetContextType {
   data: BudgetData;
   stats: any;
   setSalary: (amount: number, date: string) => void;
-  addExpense: (description: string, totalAmount: number, startDate: string, spreadDays: number) => void;
+  addExpense: (description: string, totalAmount: number, startDate: string, spreadDays: number, category: string, recurring: boolean) => void;
   deleteExpense: (id: string) => void;
   resetData: () => void;
   updateSettings: (settings: Partial<BudgetData['settings']>) => void;
@@ -14,7 +14,7 @@ interface BudgetContextType {
 
 const BudgetContext = createContext<BudgetContextType | undefined>(undefined);
 
-const STORAGE_KEY = 'daily_budget_data';
+const STORAGE_KEY = 'daily_budget_premium_v1';
 
 const initialData: BudgetData = {
   salary: null,
@@ -22,7 +22,11 @@ const initialData: BudgetData = {
   settings: {
     currency: '€',
     language: 'it',
+    savingsGoal: 0,
+    notificationsEnabled: false,
   },
+  dailyHistory: [],
+  history: [],
 };
 
 export const BudgetProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
@@ -34,6 +38,110 @@ export const BudgetProvider: React.FC<{ children: React.ReactNode }> = ({ childr
   useEffect(() => {
     localStorage.setItem(STORAGE_KEY, JSON.stringify(data));
   }, [data]);
+
+  // Logica per il cambio mese e spese ricorrenti
+  useEffect(() => {
+    if (!data.salary) return;
+
+    const today = startOfDay(new Date());
+    const nextSalaryDate = startOfDay(parseISO(data.salary.nextDate));
+
+    if (isAfter(today, nextSalaryDate) || isSameDay(today, nextSalaryDate)) {
+      // 1. Salva snapshot nel history
+      const currentMonthStats = calculateStats(data);
+      const snapshot: MonthSnapshot = {
+        month: format(parseISO(data.salary.date), 'yyyy-MM'),
+        salary: data.salary.amount,
+        totalSpent: data.expenses.reduce((acc, curr) => acc + curr.totalAmount, 0),
+        saved: currentMonthStats.availableBalance,
+        expenses: [...data.expenses],
+        dailyHistory: [...data.dailyHistory],
+      };
+
+      // 2. Prepara nuove spese (ricorrenti)
+      const recurringExpenses = data.expenses
+        .filter(e => e.recurring)
+        .map(e => ({
+          ...e,
+          id: crypto.randomUUID(),
+          startDate: data.salary!.nextDate,
+        }));
+
+      // 3. Aggiorna stipendio per il prossimo mese
+      const newStartDate = data.salary.nextDate;
+      const newNextDate = format(addMonths(parseISO(newStartDate), 1), 'yyyy-MM-dd');
+
+      setData(prev => ({
+        ...prev,
+        salary: {
+          amount: prev.salary!.amount,
+          date: newStartDate,
+          nextDate: newNextDate,
+        },
+        expenses: recurringExpenses,
+        dailyHistory: [],
+        history: [snapshot, ...prev.history],
+      }));
+    }
+  }, [data.salary]);
+
+  const calculateStats = (currentData: BudgetData) => {
+    if (!currentData.salary) return null;
+    const today = startOfDay(new Date());
+    const nextSalaryDate = startOfDay(parseISO(currentData.salary.nextDate));
+    const daysRemaining = Math.max(1, differenceInDays(nextSalaryDate, today));
+    
+    let totalSpentSoFar = 0;
+    currentData.expenses.forEach(expense => {
+      const expStart = startOfDay(parseISO(expense.startDate));
+      const daysSinceStart = differenceInDays(today, expStart);
+      if (daysSinceStart >= 0) {
+        const daysToCharge = Math.min(daysSinceStart, expense.spreadDays);
+        totalSpentSoFar += daysToCharge * expense.dailyQuota;
+      }
+    });
+
+    // Sottrai l'obiettivo di risparmio dal budget disponibile
+    const savingsGoal = currentData.settings.savingsGoal || 0;
+    const availableBalance = currentData.salary.amount - totalSpentSoFar - savingsGoal;
+    const dailyBudget = availableBalance / daysRemaining;
+    
+    const salaryDate = startOfDay(parseISO(currentData.salary.date));
+    const totalDaysInMonth = differenceInDays(nextSalaryDate, salaryDate);
+    const daysPassed = differenceInDays(today, salaryDate);
+    const progress = Math.min(100, Math.max(0, (daysPassed / totalDaysInMonth) * 100));
+
+    // Calcolo risparmio attuale (rispetto all'obiettivo)
+    const totalExpenses = currentData.expenses.reduce((acc, e) => acc + e.totalAmount, 0);
+    const currentSavings = currentData.salary.amount - totalExpenses;
+
+    return { 
+      dailyBudget, 
+      availableBalance, 
+      daysRemaining, 
+      progress, 
+      currentSavings,
+      savingsGoal,
+      totalExpenses
+    };
+  };
+
+  const stats = useMemo(() => calculateStats(data), [data]);
+
+  // Registra la storia giornaliera
+  useEffect(() => {
+    if (stats && data.salary) {
+      const todayStr = format(new Date(), 'yyyy-MM-dd');
+      const alreadyRecorded = data.dailyHistory.some(h => h.date === todayStr);
+      
+      if (!alreadyRecorded) {
+        setData(prev => ({
+          ...prev,
+          dailyHistory: [...prev.dailyHistory, { date: todayStr, budget: stats.dailyBudget }]
+        }));
+      }
+    }
+  }, [stats?.dailyBudget]);
 
   const setSalary = (amount: number, date: string) => {
     const startDate = parseISO(date);
@@ -48,7 +156,7 @@ export const BudgetProvider: React.FC<{ children: React.ReactNode }> = ({ childr
     }));
   };
 
-  const addExpense = (description: string, totalAmount: number, startDate: string, spreadDays: number) => {
+  const addExpense = (description: string, totalAmount: number, startDate: string, spreadDays: number, category: any, recurring: boolean) => {
     const dailyQuota = totalAmount / spreadDays;
     const newExpense: Expense = {
       id: crypto.randomUUID(),
@@ -57,6 +165,8 @@ export const BudgetProvider: React.FC<{ children: React.ReactNode }> = ({ childr
       startDate,
       spreadDays,
       dailyQuota,
+      category,
+      recurring,
     };
     setData(prev => ({
       ...prev,
@@ -75,32 +185,6 @@ export const BudgetProvider: React.FC<{ children: React.ReactNode }> = ({ childr
 
   const updateSettings = (settings: Partial<BudgetData['settings']>) => 
     setData(prev => ({ ...prev, settings: { ...prev.settings, ...settings } }));
-
-  const stats = useMemo(() => {
-    if (!data.salary) return null;
-    const today = startOfDay(new Date());
-    const nextSalaryDate = startOfDay(parseISO(data.salary.nextDate));
-    const daysRemaining = Math.max(1, differenceInDays(nextSalaryDate, today));
-    
-    let totalSpentSoFar = 0;
-    data.expenses.forEach(expense => {
-      const expStart = startOfDay(parseISO(expense.startDate));
-      const daysSinceStart = differenceInDays(today, expStart);
-      if (daysSinceStart >= 0) {
-        const daysToCharge = Math.min(daysSinceStart, expense.spreadDays);
-        totalSpentSoFar += daysToCharge * expense.dailyQuota;
-      }
-    });
-
-    const availableBalance = data.salary.amount - totalSpentSoFar;
-    const dailyBudget = availableBalance / daysRemaining;
-    const salaryDate = startOfDay(parseISO(data.salary.date));
-    const totalDaysInMonth = differenceInDays(nextSalaryDate, salaryDate);
-    const daysPassed = differenceInDays(today, salaryDate);
-    const progress = Math.min(100, Math.max(0, (daysPassed / totalDaysInMonth) * 100));
-
-    return { dailyBudget, availableBalance, daysRemaining, progress };
-  }, [data]);
 
   return (
     <BudgetContext.Provider value={{ data, stats, setSalary, addExpense, deleteExpense, resetData, updateSettings }}>
