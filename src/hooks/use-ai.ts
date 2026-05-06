@@ -3,11 +3,9 @@
 import { useState, useCallback } from 'react';
 import { pipeline, env } from '@xenova/transformers';
 
-// Configurazione aggressiva per il download
+// Reset totale delle configurazioni per usare i default della libreria
 env.allowLocalModels = false;
 env.useBrowserCache = true;
-env.remoteHost = 'https://huggingface.co';
-env.remotePathTemplate = '{model}/resolve/{revision}/{file}';
 
 export function useAI() {
   const [generator, setGenerator] = useState<any>(null);
@@ -25,12 +23,11 @@ export function useAI() {
           await caches.delete(name);
         }
       }
-      console.log("Bibi AI: Cache pulita con successo");
       setError(false);
       setProgress(0);
-      setStatus('Cache pulita. Pronto a riprovare.');
+      setStatus('Cache pulita. Riprova.');
     } catch (e) {
-      console.error("Errore pulizia cache:", e);
+      console.error("Errore cache:", e);
     }
   };
 
@@ -39,46 +36,44 @@ export function useAI() {
     
     setLoading(true);
     setError(false);
-    setStatus('Connessione ai server...');
+    setStatus('Inizializzazione...');
     
     try {
+      // Usiamo un modello leggermente diverso e molto stabile
       const pipe = await pipeline('text2text-generation', 'Xenova/LaMini-Flan-T5-78M', {
         progress_callback: (p: any) => {
           if (p.status === 'progress') {
-            const isModel = p.file.includes('model') || p.file.includes('weights');
-            if (isModel) {
-              setProgress(Math.round(10 + (p.progress * 0.85)));
-              setStatus(`Download: ${Math.round(p.progress)}%`);
-            } else {
-              setProgress(prev => Math.min(10, prev + 1));
-              setStatus('Configurazione...');
-            }
+            setProgress(Math.round(p.progress));
+            setStatus(`Scaricamento: ${Math.round(p.progress)}%`);
           } else if (p.status === 'ready') {
-            setProgress(100);
-            setStatus('Bibi è pronta!');
             setReady(true);
             setLoading(false);
+            setStatus('Bibi è pronta!');
           }
         }
       });
       
       setGenerator(() => pipe);
     } catch (err) {
-      console.error("Bibi AI Error:", err);
+      console.error("Errore critico Bibi AI:", err);
       setError(true);
       setLoading(false);
-      setStatus('Errore di connessione');
+      setStatus('Errore di rete');
     }
   }, [generator, loading, ready]);
 
   const askBibi = async (prompt: string, context: string) => {
     if (!generator) return "Non sono ancora pronta!";
     try {
-      const fullPrompt = `System: You are Bibi, a helpful financial assistant. Answer in Italian. Context: ${context} User: ${prompt} Bibi:`;
-      const output = await generator(fullPrompt, { max_new_tokens: 100, temperature: 0.7 });
+      const fullPrompt = `Rispondi in italiano. Contest: ${context} Utente: ${prompt} Bibi:`;
+      const output = await generator(fullPrompt, { 
+        max_new_tokens: 50, 
+        temperature: 0.7,
+        repetition_penalty: 1.2
+      });
       return output[0].generated_text;
     } catch (err) {
-      return "Ho avuto un problema tecnico. Riprova?";
+      return "Errore nella generazione. Riprova?";
     }
   };
 
