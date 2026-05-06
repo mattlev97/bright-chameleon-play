@@ -9,8 +9,7 @@ const AppLayout = ({ children }: { children: React.ReactNode }) => {
       <main className="p-5 animate-in fade-in duration-500">
         {children}
       </main>
-      
-      <nav className="fixed bottom-0 left-1/2 -translate-x-1/2 w-full max-w-md bg-white/90 dark:bg-[#1A1830]/90 backdrop-blur-xl border-t border-slate-200/50 dark:border-slate-800/50 px-8 py-4 flex justify-between items-center z-50">
+            <nav className="fixed bottom-0 left-1/2 -translate-x-1/2 w-full max-w-md bg-white/90 dark:bg-[#1A1830]/90 backdrop-blur-xl border-t border-slate-200/50 dark:border-slate-800/50 px-8 py-4 flex justify-between items-center z-50">
         <NavLink 
           to="/" 
           className={({ isActive }) => cn(
@@ -44,6 +43,22 @@ const AppLayout = ({ children }: { children: React.ReactNode }) => {
             <>
               <SettingsIcon size={22} strokeWidth={isActive ? 2.5 : 2} />
               <span className="text-[11px] font-medium">Impostazioni</span>
+            </>
+          )}
+        </NavLink>
+
+        {/* New Summary route */}
+        <NavLink 
+          to="/summary" 
+          className={({ isActive }) => cn(
+            "flex flex-col items-center gap-1 transition-all duration-300",
+            isActive ? "text-[#6C63FF]" : "text-[#9CA3AF] hover:text-slate-600"
+          )}
+        >
+          {({ isActive }) => (
+            <>
+              <PieChart size={22} strokeWidth={isActive ? 2.5 : 2} />
+              <span className="text-[11px] font-medium">Riepilogo</span>
             </>
           )}
         </NavLink>
