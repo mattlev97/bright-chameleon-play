@@ -1,12 +1,12 @@
 import React, { createContext, useContext, useState, useEffect, useMemo } from 'react';
-import { BudgetData, Expense, MascotId } from '../types/budget';
+import { BudgetData, Expense, MascotId, MascotState, ExpenseWeight } from '../types/budget';
 import { differenceInDays, addMonths, format, parseISO, startOfDay } from 'date-fns';
 
 interface BudgetContextType {
   data: BudgetData;
   stats: any;
   setSalary: (amount: number, date: string, mascotId?: MascotId, savingsGoal?: number) => void;
-  addExpense: (description: string, totalAmount: number, startDate: string, spreadDays: number, category: any, recurring: boolean) => void;
+  addExpense: (description: string, totalAmount: number, startDate: string, spreadDays: number, category: any, recurring: boolean, weight: ExpenseWeight) => void;
   updateExpense: (id: string, updates: Partial<Expense>) => void;
   deleteExpense: (id: string) => void;
   resetData: () => void;
@@ -37,6 +37,8 @@ export const BudgetProvider: React.FC<{ children: React.ReactNode }> = ({ childr
     return saved ? JSON.parse(saved) : initialData;
   });
 
+  const [reaction, setReaction] = useState<MascotState | null>(null);
+
   useEffect(() => {
     localStorage.setItem(STORAGE_KEY, JSON.stringify(data));
   }, [data]);
@@ -48,31 +50,23 @@ export const BudgetProvider: React.FC<{ children: React.ReactNode }> = ({ childr
     const nextSalaryDate = startOfDay(parseISO(currentData.salary.nextDate));
     const salaryDate = startOfDay(parseISO(currentData.salary.date));
     
-    // Giorni rimanenti fino al prossimo stipendio
     const daysRemaining = Math.max(1, differenceInDays(nextSalaryDate, today));
     const totalDaysInMonth = Math.max(1, differenceInDays(nextSalaryDate, salaryDate));
     const daysPassed = Math.max(0, differenceInDays(today, salaryDate));
     
-    // Somma totale di tutte le spese inserite
     const totalPlannedExpenses = currentData.expenses.reduce((acc, e) => acc + e.totalAmount, 0);
     const savingsGoal = currentData.settings.savingsGoal || 0;
 
-    // Budget giornaliero: quello che resta diviso i giorni che mancano
     const totalAvailableForFreeSpending = currentData.salary.amount - totalPlannedExpenses - savingsGoal;
     const dailyBudget = Math.max(0, totalAvailableForFreeSpending / daysRemaining);
-    
-    // Risparmio Attuale = Stipendio - Totale Spese (Sottrazione immediata del totale)
     const currentSavings = currentData.salary.amount - totalPlannedExpenses;
-    
-    // Sei "In Linea" se quello che ti resta è maggiore o uguale all'obiettivo di risparmio
     const isOnTrack = currentSavings >= savingsGoal;
-
     const progress = Math.min(100, (daysPassed / totalDaysInMonth) * 100);
 
-    // Stato mascotte basato sul budget giornaliero
-    let mascotState: 'happy' | 'neutral' | 'sad' = 'neutral';
-    if (dailyBudget > 40) mascotState = 'happy';
-    else if (dailyBudget < 15) mascotState = 'sad';
+    // Stato base della mascotte
+    let baseState: MascotState = 'neutral';
+    if (dailyBudget > 40) baseState = 'happy';
+    else if (dailyBudget < 15) baseState = 'concerned';
 
     return { 
       dailyBudget, 
@@ -84,11 +78,11 @@ export const BudgetProvider: React.FC<{ children: React.ReactNode }> = ({ childr
       isOnTrack,
       totalDaysInMonth,
       totalAvailableForFreeSpending,
-      mascotState
+      mascotState: reaction || baseState
     };
   };
 
-  const stats = useMemo(() => calculateStats(data), [data]);
+  const stats = useMemo(() => calculateStats(data), [data, reaction]);
 
   const setSalary = (amount: number, date: string, mascotId?: MascotId, savingsGoal?: number) => {
     const startDate = parseISO(date);
@@ -104,8 +98,24 @@ export const BudgetProvider: React.FC<{ children: React.ReactNode }> = ({ childr
     }));
   };
 
-  const addExpense = (description: string, totalAmount: number, startDate: string, spreadDays: number, category: any, recurring: boolean) => {
+  const addExpense = (description: string, totalAmount: number, startDate: string, spreadDays: number, category: any, recurring: boolean, weight: ExpenseWeight) => {
     const dailyQuota = totalAmount / spreadDays;
+    
+    // Calcolo reazione immediata
+    if (stats) {
+      const weightMultiplier = weight === 'necessary' ? 0.8 : weight === 'impulse' ? 1.2 : 1.0;
+      const impact = (totalAmount / stats.dailyBudget) * weightMultiplier;
+      
+      let newReaction: MascotState = 'neutral';
+      if (impact < 0.3) newReaction = 'happy';
+      else if (impact >= 0.3 && impact < 0.7) newReaction = 'neutral';
+      else if (impact >= 0.7 && impact < 1.0) newReaction = 'concerned';
+      else newReaction = 'shocked';
+
+      setReaction(newReaction);
+      setTimeout(() => setReaction(null), 3000);
+    }
+
     const newExpense: Expense = {
       id: crypto.randomUUID(),
       description,
@@ -115,6 +125,7 @@ export const BudgetProvider: React.FC<{ children: React.ReactNode }> = ({ childr
       dailyQuota,
       category,
       recurring,
+      weight
     };
     setData(prev => ({ ...prev, expenses: [newExpense, ...prev.expenses] }));
   };
@@ -122,16 +133,7 @@ export const BudgetProvider: React.FC<{ children: React.ReactNode }> = ({ childr
   const updateExpense = (id: string, updates: Partial<Expense>) => {
     setData(prev => ({
       ...prev,
-      expenses: prev.expenses.map(e => {
-        if (e.id === id) {
-          const updated = { ...e, ...updates };
-          if (updates.totalAmount !== undefined || updates.spreadDays !== undefined) {
-            updated.dailyQuota = (updated.totalAmount / updated.spreadDays);
-          }
-          return updated;
-        }
-        return e;
-      })
+      expenses: prev.expenses.map(e => (e.id === id ? { ...e, ...updates } : e))
     }));
   };
 
