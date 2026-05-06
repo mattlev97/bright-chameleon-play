@@ -57,7 +57,7 @@ const Index = () => {
           <button onClick={() => setShowBreakdown(true)} className="p-2 text-[#4F6F52] bg-[#86A789]/10 rounded-full"><Info size={20} /></button>
         </div>
 
-        <div className="relative pt-12">
+        <div className="relative pt-16">
           <div className="absolute top-0 left-0 w-full z-20 pointer-events-none">
             <Pet type={data.settings.selectedPet} mood={petMood} />
           </div>
