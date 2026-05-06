@@ -5,12 +5,12 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Card } from '@/components/ui/card';
 import { Progress } from '@/components/ui/progress';
-import { Sparkles, Send, X, Loader2, Bot } from 'lucide-react';
+import { Sparkles, Send, X, Loader2, Bot, RefreshCw, AlertCircle } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 
 export const AIChat = () => {
   const { stats } = useBudget();
-  const { loadModel, askBibi, loading, ready, progress, status } = useAI();
+  const { loadModel, askBibi, loading, ready, error, progress, status } = useAI();
   const [isOpen, setIsOpen] = useState(false);
   const [input, setInput] = useState('');
   const [messages, setMessages] = useState<{role: 'user' | 'bibi', text: string}[]>([
@@ -26,18 +26,15 @@ export const AIChat = () => {
 
   const handleOpen = () => {
     setIsOpen(true);
-    loadModel();
+    if (!ready && !loading) loadModel();
   };
 
   const handleSend = async () => {
     if (!input.trim() || !ready) return;
-
     const userMsg = input;
     setInput('');
     setMessages(prev => [...prev, { role: 'user', text: userMsg }]);
-
-    const context = `Budget oggi: €${stats.dailyBudget.toFixed(2)}. Giorni rimasti: ${stats.daysRemaining}. Risparmio: €${stats.currentSavings.toFixed(2)}.`;
-
+    const context = `Budget oggi: €${stats.dailyBudget.toFixed(2)}. Giorni rimasti: ${stats.daysRemaining}.`;
     const response = await askBibi(userMsg, context);
     setMessages(prev => [...prev, { role: 'bibi', text: response }]);
   };
@@ -69,12 +66,10 @@ export const AIChat = () => {
             <Card className="overflow-hidden border-none shadow-2xl rounded-[28px] bg-white dark:bg-[#1A1830] flex flex-col h-[450px]">
               <div className="p-4 bg-gradient-to-r from-[#6C63FF] to-[#A78BFA] text-white flex justify-between items-center">
                 <div className="flex items-center gap-2">
-                  <div className="bg-white/20 p-1.5 rounded-lg">
-                    <Bot size={18} />
-                  </div>
+                  <Bot size={18} />
                   <div>
                     <h3 className="font-bold text-sm">Bibi AI</h3>
-                    <p className="text-[10px] opacity-80">100% Locale & Privata</p>
+                    <p className="text-[10px] opacity-80">Privata & Locale</p>
                   </div>
                 </div>
                 <button onClick={() => setIsOpen(false)} className="p-1 hover:bg-white/10 rounded-full transition-colors">
@@ -85,21 +80,38 @@ export const AIChat = () => {
               <div className="flex-1 overflow-y-auto p-4 space-y-4 no-scrollbar" ref={scrollRef}>
                 {!ready && (
                   <div className="flex flex-col items-center justify-center h-full text-center space-y-4 p-6">
-                    <div className="relative">
-                      <Loader2 className="animate-spin text-[#6C63FF]" size={40} />
-                      <Sparkles className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 text-[#A78BFA]" size={16} />
-                    </div>
-                    <div className="space-y-3 w-full">
-                      <div className="flex justify-between items-end">
-                        <p className="text-xs font-bold text-[#1E1B3A] dark:text-[#F1F0FF] truncate max-w-[180px]">{status}</p>
-                        <p className="text-[10px] font-bold text-[#6C63FF]">{progress}%</p>
+                    {error ? (
+                      <div className="space-y-4 animate-in fade-in">
+                        <div className="w-16 h-16 bg-red-50 dark:bg-red-900/20 rounded-full flex items-center justify-center mx-auto text-red-500">
+                          <AlertCircle size={32} />
+                        </div>
+                        <div className="space-y-2">
+                          <p className="font-bold text-slate-800 dark:text-white">Connessione interrotta</p>
+                          <p className="text-xs text-slate-500">Il download del modello è fallito. Controlla la tua connessione.</p>
+                        </div>
+                        <Button 
+                          onClick={() => loadModel()} 
+                          className="bg-[#6C63FF] hover:bg-[#5b54d6] text-white rounded-xl gap-2"
+                        >
+                          <RefreshCw size={16} /> Riprova
+                        </Button>
                       </div>
-                      <Progress value={progress} className="h-2 bg-slate-100 dark:bg-slate-800" />
-                      <p className="text-[10px] text-slate-400 leading-relaxed">
-                        Sto scaricando il mio cervello locale (~80MB). <br/>
-                        Una volta completato, funzionerò anche senza internet!
-                      </p>
-                    </div>
+                    ) : (
+                      <>
+                        <div className="relative">
+                          <Loader2 className="animate-spin text-[#6C63FF]" size={40} />
+                          <Sparkles className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 text-[#A78BFA]" size={16} />
+                        </div>
+                        <div className="space-y-3 w-full">
+                          <div className="flex justify-between items-end">
+                            <p className="text-xs font-bold text-[#1E1B3A] dark:text-[#F1F0FF]">{status}</p>
+                            <p className="text-[10px] font-bold text-[#6C63FF]">{progress}%</p>
+                          </div>
+                          <Progress value={progress} className="h-2 bg-slate-100 dark:bg-slate-800" />
+                          <p className="text-[10px] text-slate-400">Download del cervello locale (~80MB)...</p>
+                        </div>
+                      </>
+                    )}
                   </div>
                 )}
 
@@ -112,7 +124,7 @@ export const AIChat = () => {
                   >
                     <div className={`max-w-[85%] p-3 rounded-2xl text-sm ${
                       msg.role === 'user' 
-                        ? 'bg-[#6C63FF] text-white rounded-tr-none shadow-md shadow-[#6C63FF]/10' 
+                        ? 'bg-[#6C63FF] text-white rounded-tr-none' 
                         : 'bg-slate-100 dark:bg-slate-800 text-[#1E1B3A] dark:text-[#F1F0FF] rounded-tl-none'
                     }`}>
                       {msg.text}
@@ -127,7 +139,7 @@ export const AIChat = () => {
                     value={input}
                     onChange={(e) => setInput(e.target.value)}
                     onKeyPress={(e) => e.key === 'Enter' && handleSend()}
-                    placeholder={ready ? "Chiedi a Bibi..." : "Caricamento..."}
+                    placeholder={ready ? "Chiedi a Bibi..." : "In attesa..."}
                     disabled={!ready}
                     className="rounded-xl border-none bg-white dark:bg-[#1A1830] shadow-inner pr-12 h-12"
                   />
@@ -135,7 +147,7 @@ export const AIChat = () => {
                     onClick={handleSend} 
                     disabled={!ready || !input.trim()}
                     size="icon"
-                    className="absolute right-1 w-10 h-10 rounded-lg bg-[#6C63FF] hover:bg-[#5b54d6] text-white transition-all"
+                    className="absolute right-1 w-10 h-10 rounded-lg bg-[#6C63FF] text-white"
                   >
                     <Send size={18} />
                   </Button>

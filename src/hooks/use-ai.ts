@@ -3,7 +3,6 @@
 import { useState, useCallback } from 'react';
 import { pipeline, env } from '@xenova/transformers';
 
-// Configurazione per assicurarsi che il download avvenga correttamente nel browser
 env.allowLocalModels = false;
 env.useBrowserCache = true;
 
@@ -11,76 +10,57 @@ export function useAI() {
   const [generator, setGenerator] = useState<any>(null);
   const [loading, setLoading] = useState(false);
   const [ready, setReady] = useState(false);
+  const [error, setError] = useState(false);
   const [progress, setProgress] = useState(0);
   const [status, setStatus] = useState('');
 
   const loadModel = useCallback(async () => {
-    if (generator || loading) return;
+    if (generator || loading || ready) return;
     
     setLoading(true);
-    setStatus('Connessione ai server IA...');
-    console.log("Bibi AI: Inizio caricamento modello...");
+    setError(false);
+    setStatus('Connessione ai server...');
     
     try {
       const pipe = await pipeline('text2text-generation', 'Xenova/LaMini-Flan-T5-78M', {
         progress_callback: (p: any) => {
-          // Logghiamo in console per debug reale
-          console.log(`Bibi AI Progress [${p.status}]: ${p.file || ''}`, p.progress || '');
-
-          if (p.status === 'init') {
-            setStatus('Ricerca file del cervello...');
-            setProgress(2);
-          } else if (p.status === 'progress') {
+          if (p.status === 'progress') {
             const isModel = p.file.includes('model') || p.file.includes('weights');
-            
             if (isModel) {
-              const modelProgress = 10 + (p.progress * 0.85);
-              setProgress(Math.round(modelProgress));
-              setStatus(`Download cervello: ${Math.round(p.progress)}%`);
+              setProgress(Math.round(10 + (p.progress * 0.85)));
+              setStatus(`Download: ${Math.round(p.progress)}%`);
             } else {
-              setStatus(`Caricamento configurazione...`);
               setProgress(prev => Math.min(10, prev + 1));
+              setStatus('Configurazione...');
             }
-          } else if (p.status === 'done') {
-            console.log(`Bibi AI: File ${p.file} scaricato con successo.`);
           } else if (p.status === 'ready') {
-            console.log("Bibi AI: Modello pronto all'uso!");
             setProgress(100);
-            setStatus('Bibi è sveglia!');
+            setStatus('Bibi è pronta!');
+            setReady(true);
+            setLoading(false);
           }
         }
       });
       
       setGenerator(() => pipe);
-      setReady(true);
     } catch (err) {
       console.error("Bibi AI Error:", err);
-      setStatus('Errore di connessione. Riprova.');
+      setError(true);
       setLoading(false);
+      setStatus('Errore di connessione');
     }
-  }, [generator, loading]);
+  }, [generator, loading, ready]);
 
   const askBibi = async (prompt: string, context: string) => {
-    if (!generator) return "Sto ancora caricando... un attimo!";
-    
+    if (!generator) return "Non sono ancora pronta!";
     try {
-      const fullPrompt = `System: You are Bibi, a helpful financial assistant. Answer in Italian.
-      Context: ${context}
-      User: ${prompt}
-      Bibi:`;
-
-      const output = await generator(fullPrompt, {
-        max_new_tokens: 100,
-        temperature: 0.7,
-        repetition_penalty: 1.2,
-      });
-
+      const fullPrompt = `System: You are Bibi, a helpful financial assistant. Answer in Italian. Context: ${context} User: ${prompt} Bibi:`;
+      const output = await generator(fullPrompt, { max_new_tokens: 100, temperature: 0.7 });
       return output[0].generated_text;
     } catch (err) {
-      console.error("Bibi AI Generation Error:", err);
-      return "Ho avuto un piccolo vuoto di memoria. Puoi ripetere?";
+      return "Ho avuto un problema tecnico. Riprova?";
     }
   };
 
-  return { loadModel, askBibi, loading, ready, progress, status };
+  return { loadModel, askBibi, loading, ready, error, progress, status };
 }
