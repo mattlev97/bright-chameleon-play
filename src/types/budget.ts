@@ -1,4 +1,6 @@
-export type CategoryId = 'casa' | 'cibo' | 'trasporti' | 'svago' | 'salute' | 'shopping' | 'altro';
+export type CategoryId = 
+  | 'casa' | 'cibo' | 'trasporti' | 'svago' | 'salute' | 'shopping' 
+  | 'abbonamenti' | 'regali' | 'animali' | 'istruzione' | 'viaggi' | 'investimenti' | 'altro';
 
 export interface Category {
   id: CategoryId;
@@ -41,7 +43,7 @@ export interface MonthSnapshot {
 export interface Settings {
   currency: string;
   language: string;
-  savingsGoal: number;
+  savingsGoal: number | null;
   notificationsEnabled: boolean;
 }
 

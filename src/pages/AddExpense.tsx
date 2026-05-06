@@ -1,5 +1,5 @@
-import React, { useState } from 'react';
-import { useNavigate } from 'react-router-dom';
+import React, { useState, useEffect } from 'react';
+import { useNavigate, useLocation } from 'react-router-dom';
 import { useBudget } from '../hooks/use-budget';
 import AppLayout from '../components/layout/AppLayout';
 import { Button } from '@/components/ui/button';
@@ -9,6 +9,7 @@ import { Switch } from '@/components/ui/switch';
 import { Card } from '@/components/ui/card';
 import { ArrowLeft, Sparkles, Repeat } from 'lucide-react';
 import { CategoryId } from '../types/budget';
+import { differenceInDays, endOfMonth, parseISO, startOfDay } from 'date-fns';
 
 const CATEGORIES: { id: CategoryId; label: string; icon: string; color: string }[] = [
   { id: 'casa', label: 'Casa', icon: '🏠', color: '#6C63FF' },
@@ -17,26 +18,57 @@ const CATEGORIES: { id: CategoryId; label: string; icon: string; color: string }
   { id: 'svago', label: 'Svago', icon: '🎬', color: '#EC4899' },
   { id: 'salute', label: 'Salute', icon: '🏥', color: '#10B981' },
   { id: 'shopping', label: 'Shopping', icon: '🛍️', color: '#F97316' },
+  { id: 'abbonamenti', label: 'Abbonamenti', icon: '📱', color: '#8B5CF6' },
+  { id: 'regali', label: 'Regali', icon: '🎁', color: '#F472B6' },
+  { id: 'animali', label: 'Animali', icon: '🐾', color: '#10B981' },
+  { id: 'istruzione', label: 'Istruzione', icon: '📚', color: '#3B82F6' },
+  { id: 'viaggi', label: 'Viaggi', icon: '✈️', color: '#06B6D4' },
+  { id: 'investimenti', label: 'Investimenti', icon: '📈', color: '#22C55E' },
   { id: 'altro', label: 'Altro', icon: '💰', color: '#9CA3AF' },
 ];
 
 const AddExpense = () => {
   const navigate = useNavigate();
-  const { addExpense } = useBudget();
+  const location = useLocation();
+  const { addExpense, updateExpense, data } = useBudget();
   
-  const [description, setDescription] = useState('');
-  const [amount, setAmount] = useState('');
-  const [date, setDate] = useState(new Date().toISOString().split('T')[0]);
-  const [isSpread, setIsSpread] = useState(false);
-  const [days, setDays] = useState('30');
-  const [category, setCategory] = useState<CategoryId>('altro');
-  const [recurring, setRecurring] = useState(false);
+  const editId = new URLSearchParams(location.search).get('edit');
+  const editExpense = editId ? data.expenses.find(e => e.id === editId) : null;
+
+  const [description, setDescription] = useState(editExpense?.description || '');
+  const [amount, setAmount] = useState(editExpense?.totalAmount.toString() || '');
+  const [date, setDate] = useState(editExpense?.startDate || new Date().toISOString().split('T')[0]);
+  const [isSpread, setIsSpread] = useState(editExpense ? editExpense.spreadDays > 1 : false);
+  const [days, setDays] = useState(editExpense?.spreadDays.toString() || '1');
+  const [category, setCategory] = useState<CategoryId>(editExpense?.category || 'altro');
+  const [recurring, setRecurring] = useState(editExpense?.recurring || false);
+
+  // Calcolo automatico giorni spalma
+  useEffect(() => {
+    if (isSpread && !editExpense) {
+      const selectedDate = parseISO(date);
+      const lastDay = endOfMonth(selectedDate);
+      const remaining = differenceInDays(lastDay, selectedDate) + 1;
+      setDays(remaining.toString());
+    }
+  }, [isSpread, date]);
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     if (description && amount) {
       const spreadDays = isSpread ? parseInt(days) : 1;
-      addExpense(description, parseFloat(amount), date, spreadDays, category, recurring);
+      if (editId) {
+        updateExpense(editId, {
+          description,
+          totalAmount: parseFloat(amount),
+          startDate: date,
+          spreadDays,
+          category,
+          recurring
+        });
+      } else {
+        addExpense(description, parseFloat(amount), date, spreadDays, category, recurring);
+      }
       navigate('/');
     }
   };
@@ -50,7 +82,9 @@ const AddExpense = () => {
           <button onClick={() => navigate(-1)} className="p-2 bg-white dark:bg-[#1A1830] rounded-xl border border-slate-100 dark:border-slate-800 text-slate-600 dark:text-slate-400 active:scale-90 transition-transform shadow-sm">
             <ArrowLeft size={20} />
           </button>
-          <h1 className="text-lg font-bold text-[#1E1B3A] dark:text-[#F1F0FF]">Nuova spesa</h1>
+          <h1 className="text-lg font-bold text-[#1E1B3A] dark:text-[#F1F0FF]">
+            {editId ? 'Modifica spesa' : 'Nuova spesa'}
+          </h1>
           <div className="w-10" />
         </div>
 
@@ -84,7 +118,7 @@ const AddExpense = () => {
                 placeholder="Es. Affitto, Cena, Spesa..." 
                 className="h-13 rounded-xl border-[1.5px] border-slate-200 dark:border-slate-800 bg-transparent focus:border-[#6C63FF] focus:ring-0 transition-all"
                 value={description}
-onChange={(e) => setDescription(e.target.value)}
+                onChange={(e) => setDescription(e.target.value)}
                 required
               />
             </div>
@@ -174,7 +208,7 @@ onChange={(e) => setDescription(e.target.value)}
                 <p className="text-[11px] text-[#6C63FF]/70 font-bold uppercase tracking-wider">Al giorno</p>
               </div>
               <Button type="submit" className="bg-gradient-to-r from-[#6C63FF] to-[#A78BFA] text-white hover:opacity-90 font-bold rounded-xl px-8 h-12 shadow-lg shadow-[#6C63FF]/20">
-                Aggiungi
+                {editId ? 'Salva' : 'Aggiungi'}
               </Button>
             </div>
           </Card>
