@@ -3,8 +3,11 @@
 import { useState, useCallback } from 'react';
 import { pipeline, env } from '@xenova/transformers';
 
+// Configurazione aggressiva per il download
 env.allowLocalModels = false;
 env.useBrowserCache = true;
+env.remoteHost = 'https://huggingface.co';
+env.remotePathTemplate = '{model}/resolve/{revision}/{file}';
 
 export function useAI() {
   const [generator, setGenerator] = useState<any>(null);
@@ -13,6 +16,23 @@ export function useAI() {
   const [error, setError] = useState(false);
   const [progress, setProgress] = useState(0);
   const [status, setStatus] = useState('');
+
+  const clearCache = async () => {
+    try {
+      const cacheNames = await caches.keys();
+      for (const name of cacheNames) {
+        if (name.includes('transformers')) {
+          await caches.delete(name);
+        }
+      }
+      console.log("Bibi AI: Cache pulita con successo");
+      setError(false);
+      setProgress(0);
+      setStatus('Cache pulita. Pronto a riprovare.');
+    } catch (e) {
+      console.error("Errore pulizia cache:", e);
+    }
+  };
 
   const loadModel = useCallback(async () => {
     if (generator || loading || ready) return;
@@ -62,5 +82,5 @@ export function useAI() {
     }
   };
 
-  return { loadModel, askBibi, loading, ready, error, progress, status };
+  return { loadModel, askBibi, clearCache, loading, ready, error, progress, status };
 }

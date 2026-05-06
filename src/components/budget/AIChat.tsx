@@ -5,12 +5,12 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Card } from '@/components/ui/card';
 import { Progress } from '@/components/ui/progress';
-import { Sparkles, Send, X, Loader2, Bot, RefreshCw, AlertCircle } from 'lucide-react';
+import { Sparkles, Send, X, Loader2, Bot, RefreshCw, AlertCircle, Trash2 } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 
 export const AIChat = () => {
   const { stats } = useBudget();
-  const { loadModel, askBibi, loading, ready, error, progress, status } = useAI();
+  const { loadModel, askBibi, clearCache, loading, ready, error, progress, status } = useAI();
   const [isOpen, setIsOpen] = useState(false);
   const [input, setInput] = useState('');
   const [messages, setMessages] = useState<{role: 'user' | 'bibi', text: string}[]>([
@@ -87,14 +87,23 @@ export const AIChat = () => {
                         </div>
                         <div className="space-y-2">
                           <p className="font-bold text-slate-800 dark:text-white">Connessione interrotta</p>
-                          <p className="text-xs text-slate-500">Il download del modello è fallito. Controlla la tua connessione.</p>
+                          <p className="text-xs text-slate-500">Il download è fallito. Prova a pulire la cache se l'errore persiste.</p>
                         </div>
-                        <Button 
-                          onClick={() => loadModel()} 
-                          className="bg-[#6C63FF] hover:bg-[#5b54d6] text-white rounded-xl gap-2"
-                        >
-                          <RefreshCw size={16} /> Riprova
-                        </Button>
+                        <div className="flex flex-col gap-2 w-full">
+                          <Button 
+                            onClick={() => loadModel()} 
+                            className="bg-[#6C63FF] hover:bg-[#5b54d6] text-white rounded-xl gap-2"
+                          >
+                            <RefreshCw size={16} /> Riprova
+                          </Button>
+                          <Button 
+                            variant="outline"
+                            onClick={() => clearCache()} 
+                            className="rounded-xl gap-2 text-slate-500 border-slate-200"
+                          >
+                            <Trash2 size={16} /> Pulisci Cache
+                          </Button>
+                        </div>
                       </div>
                     ) : (
                       <>
