@@ -1,6 +1,6 @@
 import React, { createContext, useContext, useState, useEffect, useMemo } from 'react';
 import { BudgetData, Expense, MascotId } from '../types/budget';
-import { differenceInDays, addMonths, format, parseISO, startOfDay, endOfDay } from 'date-fns';
+import { differenceInDays, addMonths, format, parseISO, startOfDay } from 'date-fns';
 
 interface BudgetContextType {
   data: BudgetData;
@@ -48,41 +48,28 @@ export const BudgetProvider: React.FC<{ children: React.ReactNode }> = ({ childr
     const nextSalaryDate = startOfDay(parseISO(currentData.salary.nextDate));
     const salaryDate = startOfDay(parseISO(currentData.salary.date));
     
-    // Calcolo giorni rimanenti reale
+    // Giorni rimanenti fino al prossimo stipendio
     const daysRemaining = Math.max(1, differenceInDays(nextSalaryDate, today));
     const totalDaysInMonth = Math.max(1, differenceInDays(nextSalaryDate, salaryDate));
     const daysPassed = Math.max(0, differenceInDays(today, salaryDate));
     
+    // Somma totale di tutte le spese inserite
     const totalPlannedExpenses = currentData.expenses.reduce((acc, e) => acc + e.totalAmount, 0);
     const savingsGoal = currentData.settings.savingsGoal || 0;
 
-    // Budget giornaliero = (Stipendio - Spese Totali - Obiettivo Risparmio) / Giorni Rimanenti
+    // Budget giornaliero: quello che resta diviso i giorni che mancano
     const totalAvailableForFreeSpending = currentData.salary.amount - totalPlannedExpenses - savingsGoal;
     const dailyBudget = Math.max(0, totalAvailableForFreeSpending / daysRemaining);
     
-    // Calcolo risparmio corrente basato sulle spese effettivamente "accadute"
-    let accruedExpenses = 0;
-    currentData.expenses.forEach(expense => {
-      const expStart = startOfDay(parseISO(expense.startDate));
-      const daysSinceStart = differenceInDays(today, expStart) + 1; // +1 perché il primo giorno conta
-      
-      if (daysSinceStart > 0) {
-        const daysToCharge = Math.min(daysSinceStart, expense.spreadDays);
-        accruedExpenses += daysToCharge * expense.dailyQuota;
-      }
-    });
+    // Risparmio Attuale = Stipendio - Totale Spese (Sottrazione immediata del totale)
+    const currentSavings = currentData.salary.amount - totalPlannedExpenses;
+    
+    // Sei "In Linea" se quello che ti resta è maggiore o uguale all'obiettivo di risparmio
+    const isOnTrack = currentSavings >= savingsGoal;
 
-    // Il risparmio attuale è lo stipendio meno quello che abbiamo già "consumato"
-    const currentSavings = currentData.salary.amount - accruedExpenses;
     const progress = Math.min(100, (daysPassed / totalDaysInMonth) * 100);
-    
-    // Siamo in linea se quello che ci resta è >= a quello che dovremmo avere (Stipendio - Spese Proporzionali - Risparmio Proporzionale)
-    const expectedExpensesAtThisPoint = (totalPlannedExpenses / totalDaysInMonth) * daysPassed;
-    const expectedSavingsAtThisPoint = (savingsGoal / totalDaysInMonth) * daysPassed;
-    
-    // Semplifichiamo: siamo in linea se il risparmio attuale è coerente con l'obiettivo
-    const isOnTrack = currentSavings >= (currentData.salary.amount - expectedExpensesAtThisPoint - expectedSavingsAtThisPoint);
 
+    // Stato mascotte basato sul budget giornaliero
     let mascotState: 'happy' | 'neutral' | 'sad' = 'neutral';
     if (dailyBudget > 40) mascotState = 'happy';
     else if (dailyBudget < 15) mascotState = 'sad';
