@@ -1,11 +1,11 @@
 import React, { createContext, useContext, useState, useEffect, useMemo } from 'react';
-import { BudgetData, Expense, PetType } from '../types/budget';
+import { BudgetData, Expense, BlobType } from '../types/budget';
 import { differenceInDays, addMonths, format, parseISO, startOfDay } from 'date-fns';
 
 interface BudgetContextType {
   data: BudgetData;
   stats: any;
-  setSalary: (amount: number, date: string, pet?: PetType) => void;
+  setSalary: (amount: number, date: string, blob?: BlobType) => void;
   addExpense: (description: string, totalAmount: number, startDate: string, spreadDays: number, category: any, recurring: boolean) => void;
   updateExpense: (id: string, updates: Partial<Expense>) => void;
   deleteExpense: (id: string) => void;
@@ -15,7 +15,7 @@ interface BudgetContextType {
 
 const BudgetContext = createContext<BudgetContextType | undefined>(undefined);
 
-const STORAGE_KEY = 'eco_budget_v2';
+const STORAGE_KEY = 'daily_budget_v3';
 
 const initialData: BudgetData = {
   salary: null,
@@ -25,7 +25,7 @@ const initialData: BudgetData = {
     language: 'it',
     savingsGoal: null,
     notificationsEnabled: false,
-    selectedPet: 'rhino',
+    selectedBlob: 'sparky',
   },
   dailyHistory: [],
   history: [],
@@ -88,13 +88,13 @@ export const BudgetProvider: React.FC<{ children: React.ReactNode }> = ({ childr
 
   const stats = useMemo(() => calculateStats(data), [data]);
 
-  const setSalary = (amount: number, date: string, pet: PetType = 'rhino') => {
+  const setSalary = (amount: number, date: string, blob: BlobType = 'sparky') => {
     const startDate = parseISO(date);
     const nextDate = addMonths(startDate, 1);
     setData(prev => ({
       ...prev,
       salary: { amount, date, nextDate: format(nextDate, 'yyyy-MM-dd') },
-      settings: { ...prev.settings, selectedPet: pet }
+      settings: { ...prev.settings, selectedBlob: blob }
     }));
   };
 

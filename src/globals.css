@@ -4,42 +4,37 @@
 
 @layer base {
   :root {
-    --background: 45 30% 98%; /* #FBFADA - Crema morbido */
-    --foreground: 160 50% 15%; /* #12372A - Verde foresta scuro */
+    --background: 0 0% 100%;
+    --foreground: 224 71.4% 4.1%;
 
     --card: 0 0% 100%;
-    --card-foreground: 160 50% 15%;
+    --card-foreground: 224 71.4% 4.1%;
 
-    --primary: 145 20% 35%; /* #4F6F52 - Verde salvia scuro */
-    --primary-foreground: 45 30% 98%;
+    --primary: 245 100% 70%; /* #6C63FF - Viola Moderno */
+    --primary-foreground: 210 20% 98%;
 
-    --secondary: 145 25% 60%; /* #86A789 - Verde salvia chiaro */
-    --secondary-foreground: 160 50% 15%;
+    --secondary: 245 100% 95%;
+    --secondary-foreground: 245 100% 40%;
 
-    --muted: 45 20% 90%;
-    --muted-foreground: 160 20% 40%;
+    --muted: 220 14.3% 95.9%;
+    --muted-foreground: 220 8.9% 46.1%;
 
-    --accent: 35 40% 50%; /* #AD8B73 - Terracotta/Terra */
-    --accent-foreground: 45 30% 98%;
+    --accent: 262 83% 58%;
+    --accent-foreground: 210 20% 98%;
 
-    --border: 145 20% 85%;
-    --input: 145 20% 85%;
-    --ring: 145 20% 35%;
+    --border: 220 13% 91%;
+    --input: 220 13% 91%;
+    --ring: 245 100% 70%;
 
-    --radius: 1.5rem;
+    --radius: 1.25rem;
   }
 
   .dark {
-    --background: 160 50% 8%;
-    --foreground: 45 30% 95%;
-
-    --card: 160 40% 12%;
-    --card-foreground: 45 30% 95%;
-
-    --primary: 145 25% 60%;
-    --primary-foreground: 160 50% 10%;
-
-    --border: 160 30% 20%;
+    --background: 224 71.4% 4.1%;
+    --foreground: 210 20% 98%;
+    --card: 224 71.4% 4.1%;
+    --primary: 245 100% 70%;
+    --border: 215 27.9% 16.9%;
   }
 }
 

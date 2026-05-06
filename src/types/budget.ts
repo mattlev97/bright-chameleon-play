@@ -2,7 +2,7 @@ export type CategoryId =
   | 'casa' | 'cibo' | 'trasporti' | 'svago' | 'salute' | 'shopping' 
   | 'abbonamenti' | 'regali' | 'animali' | 'istruzione' | 'viaggi' | 'investimenti' | 'altro';
 
-export type PetType = 'rhino' | 'elephant';
+export type BlobType = 'sparky' | 'gloomy' | 'bubbly';
 
 export interface Category {
   id: CategoryId;
@@ -47,7 +47,7 @@ export interface Settings {
   language: string;
   savingsGoal: number | null;
   notificationsEnabled: boolean;
-  selectedPet: PetType;
+  selectedBlob: BlobType;
 }
 
 export interface BudgetData {
