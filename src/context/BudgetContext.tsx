@@ -6,25 +6,15 @@ interface BudgetContextType {
   data: BudgetData;
   stats: any;
   setSalary: (amount: number, date: string) => void;
-  addExpense: (
-    description: string,
-    totalAmount: number,
-    startDate: string,
-    spreadDays: number,
-    category: string,
-    recurring: boolean
-  ) => void;
+  addExpense: (description: string, totalAmount: number, startDate: string, spreadDays: number) => void;
   deleteExpense: (id: string) => void;
   resetData: () => void;
   updateSettings: (settings: Partial<BudgetData['settings']>) => void;
-  getHistory: () => BudgetData[];
-  setHistory: (history: BudgetData[]) => void;
 }
 
 const BudgetContext = createContext<BudgetContextType | undefined>(undefined);
 
 const STORAGE_KEY = 'daily_budget_data';
-const HISTORY_KEY = 'daily_budget_history';
 
 const initialData: BudgetData = {
   salary: null,
@@ -41,18 +31,9 @@ export const BudgetProvider: React.FC<{ children: React.ReactNode }> = ({ childr
     return saved ? JSON.parse(saved) : initialData;
   });
 
-  const [history, setHistoryState] = useState<BudgetData[]>(() => {
-    const saved = localStorage.getItem(HISTORY_KEY);
-    return saved ? JSON.parse(saved) : [];
-  });
-
   useEffect(() => {
     localStorage.setItem(STORAGE_KEY, JSON.stringify(data));
   }, [data]);
-
-  useEffect(() => {
-    localStorage.setItem(HISTORY_KEY, JSON.stringify(history));
-  }, [history]);
 
   const setSalary = (amount: number, date: string) => {
     const startDate = parseISO(date);
@@ -67,14 +48,7 @@ export const BudgetProvider: React.FC<{ children: React.ReactNode }> = ({ childr
     }));
   };
 
-  const addExpense = (
-    description: string,
-    totalAmount: number,
-    startDate: string,
-    spreadDays: number,
-    category: string,
-    recurring: boolean
-  ) => {
+  const addExpense = (description: string, totalAmount: number, startDate: string, spreadDays: number) => {
     const dailyQuota = totalAmount / spreadDays;
     const newExpense: Expense = {
       id: crypto.randomUUID(),
@@ -83,8 +57,6 @@ export const BudgetProvider: React.FC<{ children: React.ReactNode }> = ({ childr
       startDate,
       spreadDays,
       dailyQuota,
-      category,
-      recurring,
     };
     setData(prev => ({
       ...prev,
@@ -103,9 +75,6 @@ export const BudgetProvider: React.FC<{ children: React.ReactNode }> = ({ childr
 
   const updateSettings = (settings: Partial<BudgetData['settings']>) => 
     setData(prev => ({ ...prev, settings: { ...prev.settings, ...settings } }));
-
-  const getHistory = () => history;
-  const setHistory = (newHistory: BudgetData[]) => setHistoryState(newHistory);
 
   const stats = useMemo(() => {
     if (!data.salary) return null;
@@ -133,40 +102,8 @@ export const BudgetProvider: React.FC<{ children: React.ReactNode }> = ({ childr
     return { dailyBudget, availableBalance, daysRemaining, progress };
   }, [data]);
 
-  useEffect(() => {
-    if (!data.salary) return;
-    
-    const currentExpenses = [...data.expenses];
-    const recurringExpenses = currentExpenses.filter(e => e.recurring);
-    recurringExpenses.forEach(expense => {
-      const expenseDate = parseISO(expense.startDate);
-      const nextMonthDate = new Date(expenseDate.getFullYear(), expenseDate.getMonth() + 1, expenseDate.getDate());
-      if (nextMonthDate <= startOfDay(new Date())) {
-        const nextMonthExpense = {
-          ...expense,
-          id: crypto.randomUUID(),
-          startDate: format(nextMonthDate, 'yyyy-MM-dd'),
-        };
-        setData(prev => ({
-          ...prev,
-          expenses: [...prev.expenses, nextMonthExpense],
-        }));
-      }
-    });
-  }, [data.salary]);
-
   return (
-    <BudgetContext.Provider value={{ 
-      data, 
-      stats, 
-      setSalary, 
-      addExpense, 
-      deleteExpense, 
-      resetData, 
-      updateSettings,
-      getHistory,
-      setHistory
-    }}>
+    <BudgetContext.Provider value={{ data, stats, setSalary, addExpense, deleteExpense, resetData, updateSettings }}>
       {children}
     </BudgetContext.Provider>
   );

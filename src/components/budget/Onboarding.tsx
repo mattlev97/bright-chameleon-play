@@ -1,8 +1,8 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { Wallet, PiggyBank, BarChart3 } from 'lucide-react';
+import { Wallet, PiggyBank, BarChart3, ReceiptText } from 'lucide-react';
 
 interface OnboardingProps {
   onComplete: (amount: number, date: string) => void;
@@ -12,25 +12,6 @@ const Onboarding = ({ onComplete }: OnboardingProps) => {
   const [amount, setAmount] = useState('');
   const [date, setDate] = useState(new Date().toISOString().split('T')[0]);
 
-  useEffect(() => {
-    // Blocca lo scroll del body quando l'onboarding è attivo
-    const originalStyle = window.getComputedStyle(document.body).overflow;
-    document.body.style.overflow = 'hidden';
-    document.body.style.height = '100%';
-    document.body.style.position = 'fixed';
-    document.body.style.width = '100%';
-    document.body.style.overscrollBehavior = 'none';
-
-    return () => {
-      // Ripristina lo scroll quando l'onboarding viene rimosso
-      document.body.style.overflow = originalStyle;
-      document.body.style.height = '';
-      document.body.style.position = '';
-      document.body.style.width = '';
-      document.body.style.overscrollBehavior = '';
-    };
-  }, []);
-
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     if (amount && date) {
@@ -39,9 +20,9 @@ const Onboarding = ({ onComplete }: OnboardingProps) => {
   };
 
   return (
-    <div className="h-full w-full flex flex-col bg-[#F4F6FB] dark:bg-[#0F0E1A] overflow-hidden">
+    <div className="min-h-screen flex flex-col bg-[#F4F6FB] dark:bg-[#0F0E1A]">
       {/* Top Section (40%) */}
-      <div className="h-[40vh] bg-gradient-to-br from-[#6C63FF] to-[#A78BFA] flex flex-col items-center justify-center text-white p-6 relative overflow-hidden shrink-0">
+      <div className="h-[40vh] bg-gradient-to-br from-[#6C63FF] to-[#A78BFA] flex flex-col items-center justify-center text-white p-6 relative overflow-hidden">
         <div className="absolute -top-20 -left-20 w-64 h-64 bg-white/10 rounded-full blur-3xl" />
         <div className="bg-white/20 p-6 rounded-[2.5rem] backdrop-blur-md mb-4 animate-in zoom-in duration-700 shadow-2xl">
           <Wallet size={56} strokeWidth={1.5} />
@@ -51,7 +32,7 @@ const Onboarding = ({ onComplete }: OnboardingProps) => {
       </div>
 
       {/* Bottom Section (60%) - Sheet Effect */}
-      <div className="flex-1 bg-white dark:bg-[#1A1830] rounded-t-[28px] -mt-10 p-8 space-y-8 shadow-[0_-8px_32px_rgba(0,0,0,0.05)] relative z-10 overflow-y-auto">
+      <div className="flex-1 bg-white dark:bg-[#1A1830] rounded-t-[28px] -mt-10 p-8 space-y-8 shadow-[0_-8px_32px_rgba(0,0,0,0.05)] relative z-10">
         <div className="space-y-2">
           <h2 className="text-2xl font-bold text-[#1E1B3A] dark:text-[#F1F0FF]">Benvenuto!</h2>
           <p className="text-[#6B7280] dark:text-[#9CA3AF] text-sm leading-relaxed">

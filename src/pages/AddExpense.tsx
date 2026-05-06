@@ -8,18 +8,6 @@ import { Label } from '@/components/ui/label';
 import { Switch } from '@/components/ui/switch';
 import { Card } from '@/components/ui/card';
 import { ArrowLeft, Sparkles } from 'lucide-react';
-import { useBudgetContext } from '../context/BudgetContext';
-
-// Category definitions with colors and emojis
-const CATEGORIES = [
-  { id: 'casa', label: 'Casa', color: '#6C63FF', icon: '🏠', emoji: '🏠' },
-  { id: 'cibo', label: 'Cibo', color: '#F59E0B', icon: '🍕', emoji: '🍕' },
-  { id: 'trasporti', label: 'Trasporti', color: '#3B82F6', icon: '🚗', emoji: '🚗' },
-  { id: 'svago', label: 'Svago', color: '#EC4899', icon: '🎬', emoji: '🎬' },
-  { id: 'salute', label: 'Salute', color: '#10B981', icon: '❤️', emoji: '❤️' },
-  { id: 'shopping', label: 'Shopping', color: '#F97316', icon: '🛍️', emoji: '🛍️' },
-  { id: 'altro', label: 'Altro', color: '#9CA3AF', icon: '💰', emoji: '💰' },
-];
 
 const AddExpense = () => {
   const navigate = useNavigate();
@@ -30,41 +18,17 @@ const AddExpense = () => {
   const [date, setDate] = useState(new Date().toISOString().split('T')[0]);
   const [isSpread, setIsSpread] = useState(false);
   const [days, setDays] = useState('30');
-  const [selectedCategory, setSelectedCategory] = useState('altro');
-  const [isRecurring, setIsRecurring] = useState(false);
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     if (description && amount) {
       const spreadDays = isSpread ? parseInt(days) : 1;
-      addExpense(description, parseFloat(amount), date, spreadDays, selectedCategory, isRecurring);
+      addExpense(description, parseFloat(amount), date, spreadDays);
       navigate('/');
     }
   };
 
   const dailyQuota = amount && days ? (parseFloat(amount) / (isSpread ? parseInt(days) : 1)).toFixed(2) : '0.00';
-
-  const handleCategoryChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
-    setSelectedCategory(e.target.value);
-  };
-
-  const renderCategoryChips = () => (
-    <div className="flex flex-wrap gap-2">
-      {CATEGORIES.map((cat) => (
-        <button
-          key={cat.id}
-          onClick={() => setSelectedCategory(cat.id)}
-          className={`px-3 py-1 rounded-full text-[11px] font-medium transition-colors ${
-            selectedCategory === cat.id
-              ? 'bg-[#6C63FF] text-white border border-[#6C63FF]/50'
-              : 'bg-white text-[#1E1B3A] border border-slate-200 dark:border-slate-800'
-          }`}
-        >
-          {cat.emoji}
-        </button>
-      ))}
-    </div>
-  );
 
   return (
     <AppLayout>
@@ -73,8 +37,8 @@ const AddExpense = () => {
           <button onClick={() => navigate(-1)} className="p-2 bg-white dark:bg-[#1A1830] rounded-xl border border-slate-100 dark:border-slate-800 text-slate-600 dark:text-slate-400 active:scale-90 transition-transform shadow-sm">
             <ArrowLeft size={20} />
           </button>
-          <h1 className="text-lg font-bold text-[#1E1B3A] dark:text-[#F1F0FF] tracking-tight">Nuova spesa</h1>
-          <div className="w-10" />
+          <h1 className="text-lg font-bold text-[#1E1B3A] dark:text-[#F1F0FF]">Nuova spesa</h1>
+          <div className="w-10" /> {/* Spacer for centering */}
         </div>
 
         <form onSubmit={handleSubmit} className="space-y-6">
@@ -103,7 +67,8 @@ const AddExpense = () => {
                   className="pl-10 h-13 rounded-xl border-[1.5px] border-slate-200 dark:border-slate-800 bg-transparent focus:border-[#6C63FF] focus:ring-0 transition-all font-bold"
                   value={amount}
                   onChange={(e) => setAmount(e.target.value)}
-                  required                />
+                  required
+                />
               </div>
             </div>
 
@@ -119,12 +84,10 @@ const AddExpense = () => {
               />
             </div>
 
-            <div className="flex items-center justify-between p-4 bg-[#F4F6FB] dark:bg-slate-50/50 rounded-2xl">
+            <div className="flex items-center justify-between p-4 bg-[#F4F6FB] dark:bg-slate-900/50 rounded-2xl">
               <div className="space-y-0.5">
                 <Label className="text-sm font-bold text-[#1E1B3A] dark:text-[#F1F0FF]">Spalma su più giorni</Label>
-                <p className="text-[11px] text-[#6B7280] dark:text-[#9CA3AF] leading-relaxed">
-                  Dividi il costo nel tempo
-                </p>
+                <p className="text-[11px] text-[#6B7280] dark:text-[#9CA3AF]">Dividi il costo nel tempo</p>
               </div>
               <Switch 
                 checked={isSpread}
@@ -138,7 +101,8 @@ const AddExpense = () => {
                 <Label htmlFor="days" className="text-[11px] font-bold uppercase tracking-wider text-[#6B7280] dark:text-[#9CA3AF]">Numero di giorni</Label>
                 <Input 
                   id="days"
-                  type="number"                   placeholder="30" 
+                  type="number" 
+                  placeholder="30" 
                   className="h-13 rounded-xl border-[1.5px] border-slate-200 dark:border-slate-800 bg-transparent focus:border-[#6C63FF] focus:ring-0 transition-all"
                   value={days}
                   onChange={(e) => setDays(e.target.value)}
@@ -146,38 +110,6 @@ const AddExpense = () => {
                 />
               </div>
             )}
-
-            {/* Category selector */}
-            <div className="space-y-2">
-              <Label htmlFor="category" className="text-[11px] font-bold uppercase tracking-wider text-[#6B7280] dark:text-[#9CA3AF]">Categoria</Label>
-              <div className="relative">
-                <select
-                  id="category"
-                  value={selectedCategory}
-                  onChange={handleCategoryChange}
-                  className="pl-3 h-13 rounded-xl border-[1.5px] border-slate-200 dark:border-slate-800 bg-transparent focus:border-[#6C63FF] focus:ring-0 transition-all font-medium text-[#1E1B3A] dark:text-[#F1F0FF]"
-                >
-                  {CATEGORIES.map((cat) => (
-                    <option key={cat.id} value={cat.id} style={{ backgroundColor: cat.color, color: 'white' }}>
-                      {cat.emoji} {cat.label}
-                    </option>
-                  ))}
-                </select>
-              </div>
-            </div>
-
-            {/* Recurring toggle */}
-            <div className="flex items-center justify-between p-4 bg-[#F5F3FF] dark:bg-slate-50/50 rounded-2xl">
-              <div className="space-y-0.5">
-                <Label className="text-sm font-bold text-[#1E1B3A] dark:text-[#F1F0FF]">Spesa ricorrente</Label>
-                <p className="text-[11px] text-[#6B7280] dark:text-[#9CA3AF]">Si attiva ogni mese alla data di ricezione</p>
-              </div>
-              <Switch 
-                checked={isRecurring}
-                onCheckedChange={setIsRecurring}
-                className="data-[state=checked]:bg-[#6C63FF]"
-              />
-            </div>
           </Card>
 
           <Card className="p-6 bg-[#F5F3FF] dark:bg-[#6C63FF]/10 border-none rounded-[24px]">
