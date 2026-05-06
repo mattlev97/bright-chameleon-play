@@ -1,15 +1,17 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { useBudget } from '../hooks/use-budget';
 import AppLayout from '../components/layout/AppLayout';
 import Onboarding from '../components/budget/Onboarding';
-import { Progress } from '@/components/ui/progress';
+import DeleteConfirmationModal from '../components/budget/DeleteConfirmationModal';
 import { Card } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Calendar, Trash2, Wallet } from 'lucide-react';
 import { parseISO, isAfter, addDays, startOfDay } from 'date-fns';
+import { Expense } from '../types/budget';
 
 const Index = () => {
   const { data, stats, setSalary, deleteExpense } = useBudget();
+  const [expenseToDelete, setExpenseToDelete] = useState<Expense | null>(null);
 
   if (!data.salary || !stats) {
     return <Onboarding onComplete={setSalary} />;
@@ -26,6 +28,13 @@ const Index = () => {
     if (d.includes('trasporti') || d.includes('auto')) return '🚗';
     if (d.includes('svago') || d.includes('cinema')) return '🎬';
     return '💰';
+  };
+
+  const handleDeleteConfirm = () => {
+    if (expenseToDelete) {
+      deleteExpense(expenseToDelete.id);
+      setExpenseToDelete(null);
+    }
   };
 
   return (
@@ -117,7 +126,7 @@ const Index = () => {
                           </Badge>
                         )}
                         <button 
-                          onClick={() => deleteExpense(expense.id)}
+                          onClick={() => setExpenseToDelete(expense)}
                           className="p-1.5 text-slate-300 hover:text-red-400 transition-colors"
                         >
                           <Trash2 size={14} />
@@ -131,6 +140,14 @@ const Index = () => {
           </div>
         </div>
       </div>
+
+      {/* Modal di conferma eliminazione */}
+      <DeleteConfirmationModal 
+        isOpen={!!expenseToDelete}
+        onClose={() => setExpenseToDelete(null)}
+        onConfirm={handleDeleteConfirm}
+        expenseName={expenseToDelete?.description || ''}
+      />
     </AppLayout>
   );
 };
