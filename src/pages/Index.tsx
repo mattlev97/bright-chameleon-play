@@ -9,7 +9,7 @@ import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { 
   Calendar, Trash2, Wallet, TrendingUp, Target, 
-  Repeat, AlertCircle, CheckCircle2, Copy, Edit3, Info
+  Repeat, AlertCircle, CheckCircle2, Copy, Edit3, Info, ChevronRight
 } from 'lucide-react';
 import { parseISO, format } from 'date-fns';
 import { Line } from 'react-chartjs-2';
@@ -29,12 +29,6 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
-import {
-  Tooltip,
-  TooltipContent,
-  TooltipProvider,
-  TooltipTrigger,
-} from "@/components/ui/tooltip";
 import {
   Chart as ChartJS,
   CategoryScale,
@@ -70,6 +64,7 @@ const Index = () => {
   const navigate = useNavigate();
   const { data, stats, setSalary, deleteExpense, addExpense, updateSettings } = useBudget();
   const [showNotifyPrompt, setShowNotifyPrompt] = useState(false);
+  const [showBreakdown, setShowBreakdown] = useState(false);
   
   const [expenseToDelete, setExpenseToDelete] = useState<string | null>(null);
   const [longPressedExpense, setLongPressedExpense] = useState<any | null>(null);
@@ -189,6 +184,48 @@ const Index = () => {
         </DialogContent>
       </Dialog>
 
+      {/* Dialog per il Breakdown del Calcolo */}
+      <Dialog open={showBreakdown} onOpenChange={setShowBreakdown}>
+        <DialogContent className="rounded-[32px] max-w-[90%] mx-auto p-8">
+          <DialogHeader>
+            <DialogTitle className="text-xl font-bold text-[#1E1B3A] dark:text-[#F1F0FF]">Come calcoliamo il budget?</DialogTitle>
+          </DialogHeader>
+          <div className="space-y-6 pt-4">
+            <div className="space-y-4">
+              <div className="flex justify-between items-center">
+                <span className="text-slate-500 font-medium">Stipendio Mensile</span>
+                <span className="font-bold text-green-500">+{formatCurrency(data.salary.amount)}</span>
+              </div>
+              <div className="flex justify-between items-center">
+                <span className="text-slate-500 font-medium">Spese Pianificate</span>
+                <span className="font-bold text-red-400">-{formatCurrency(stats.totalPlannedExpenses)}</span>
+              </div>
+              <div className="flex justify-between items-center">
+                <span className="text-slate-500 font-medium">Obiettivo Risparmio</span>
+                <span className="font-bold text-[#6C63FF]">-{formatCurrency(stats.savingsGoal)}</span>
+              </div>
+              <div className="h-px bg-slate-100 dark:bg-slate-800 w-full" />
+              <div className="flex justify-between items-center">
+                <span className="text-[#1E1B3A] dark:text-[#F1F0FF] font-bold">Disponibile Totale</span>
+                <span className="font-bold text-lg">{formatCurrency(stats.totalAvailableForFreeSpending)}</span>
+              </div>
+            </div>
+            
+            <div className="bg-[#F5F3FF] dark:bg-[#6C63FF]/10 p-4 rounded-2xl space-y-2">
+              <p className="text-xs text-[#6C63FF] font-bold uppercase tracking-wider">Formula Finale</p>
+              <p className="text-sm text-[#1E1B3A] dark:text-[#F1F0FF] leading-relaxed">
+                Dividiamo il <strong>Disponibile Totale</strong> per i <strong>{stats.daysRemaining} giorni</strong> rimasti fino al prossimo stipendio.
+              </p>
+              <div className="flex items-center gap-2 pt-2">
+                <div className="px-3 py-1 bg-white dark:bg-[#1A1830] rounded-lg font-bold text-[#6C63FF]">
+                  {formatCurrency(stats.dailyBudget)} / giorno
+                </div>
+              </div>
+            </div>
+          </div>
+        </DialogContent>
+      </Dialog>
+
       {showNotifyPrompt && (
         <NotificationPrompt 
           onAccept={async () => {
@@ -213,31 +250,34 @@ const Index = () => {
             <h1 className="text-2xl font-bold text-[#1E1B3A] dark:text-[#F1F0FF] tracking-tight">DailyBudget</h1>
           </div>
           
-          {stats.savingsGoal > 0 && (
-            <TooltipProvider>
-              <Tooltip>
-                <TooltipTrigger asChild>
-                  <button className="p-2 text-[#6C63FF] bg-[#F5F3FF] dark:bg-[#6C63FF]/10 rounded-full">
-                    <Info size={18} />
-                  </button>
-                </TooltipTrigger>
-                <TooltipContent className="max-w-[200px] p-3 rounded-xl bg-white dark:bg-[#1A1830] shadow-xl border-slate-100 dark:border-slate-800">
-                  <p className="text-xs font-medium leading-relaxed">
-                    Il tuo budget è ridotto perché abbiamo già messo da parte la quota per il tuo obiettivo di risparmio di <strong>{formatCurrency(stats.savingsGoal)}</strong>.
-                  </p>
-                </TooltipContent>
-              </Tooltip>
-            </TooltipProvider>
-          )}
+          <button 
+            onClick={() => setShowBreakdown(true)}
+            className="p-2 text-[#6C63FF] bg-[#F5F3FF] dark:bg-[#6C63FF]/10 rounded-full active:scale-90 transition-transform"
+          >
+            <Info size={20} />
+          </button>
         </div>
 
         <Card className="p-6 bg-gradient-to-br from-[#6C63FF] to-[#A78BFA] border-none shadow-[0_8px_32px_rgba(108,99,255,0.25)] rounded-[24px] relative overflow-hidden">
           <div className="absolute -top-10 -right-10 w-32 h-32 bg-white/10 rounded-full blur-2xl" />
           <div className="relative z-10">
-            <p className="text-white/80 font-medium text-[13px] mb-1">Budget di oggi</p>
-            <h1 className="text-[42px] font-bold text-white tracking-tight mb-4 leading-none">
+            <div className="flex justify-between items-start mb-1">
+              <p className="text-white/80 font-medium text-[13px]">Budget di oggi</p>
+              {stats.savingsGoal > 0 && (
+                <Badge className="bg-white/20 text-white border-none text-[9px] font-bold">AL NETTO DEL RISPARMIO</Badge>
+              )}
+            </div>
+            <h1 className="text-[42px] font-bold text-white tracking-tight mb-2 leading-none">
               {formatCurrency(stats.dailyBudget)}
             </h1>
+            
+            <button 
+              onClick={() => setShowBreakdown(true)}
+              className="flex items-center gap-1 text-white/70 text-[11px] font-bold hover:text-white transition-colors mb-6"
+            >
+              VEDI DETTAGLIO CALCOLO <ChevronRight size={12} />
+            </button>
+
             <div className="flex items-center gap-2 text-white/85 mb-6">
               <Calendar size={14} />
               <span className="text-sm font-medium">{stats.daysRemaining} giorni al prossimo stipendio</span>
