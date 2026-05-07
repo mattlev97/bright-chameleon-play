@@ -7,24 +7,24 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Switch } from '@/components/ui/switch';
 import { Card } from '@/components/ui/card';
-import { ArrowLeft, Sparkles, Repeat, CalendarRange, ShieldCheck, Zap, HelpCircle } from 'lucide-react';
+import { ArrowLeft, Sparkles, Repeat, CalendarRange, ShieldCheck, Zap, HelpCircle, Package } from 'lucide-react';
 import { CategoryId, ExpenseWeight } from '../types/budget';
 import { differenceInDays, endOfMonth, parseISO } from 'date-fns';
 
 const CATEGORIES: { id: CategoryId; label: string; icon: string; color: string }[] = [
-  { id: 'casa', label: 'Casa', icon: '🏠', color: '#6C63FF' },
-  { id: 'cibo', label: 'Cibo', icon: '🍕', color: '#F59E0B' },
-  { id: 'trasporti', label: 'Trasporti', icon: '🚗', color: '#3B82F6' },
-  { id: 'svago', label: 'Svago', icon: '🎬', color: '#EC4899' },
-  { id: 'salute', label: 'Salute', icon: '🏥', color: '#10B981' },
-  { id: 'shopping', label: 'Shopping', icon: '🛍️', color: '#F97316' },
-  { id: 'abbonamenti', label: 'Abbonamenti', icon: '📱', color: '#8B5CF6' },
-  { id: 'regali', label: 'Regali', icon: '🎁', color: '#F472B6' },
-  { id: 'animali', label: 'Animali', icon: '🐾', color: '#10B981' },
-  { id: 'istruzione', label: 'Istruzione', icon: '📚', color: '#3B82F6' },
-  { id: 'viaggi', label: 'Viaggi', icon: '✈️', color: '#06B6D4' },
-  { id: 'investimenti', label: 'Investimenti', icon: '📈', color: '#22C55E' },
-  { id: 'altro', label: 'Altro', icon: '💰', color: '#9CA3AF' },
+  { id: 'casa', label: 'Casa', icon: '🏠', color: '#3E7B85' },
+  { id: 'cibo', label: 'Cibo', icon: '🍕', color: '#E67E22' },
+  { id: 'trasporti', label: 'Trasporti', icon: '🚗', color: '#2980B9' },
+  { id: 'svago', label: 'Svago', icon: '🎬', color: '#C0392B' },
+  { id: 'salute', label: 'Salute', icon: '🏥', color: '#27AE60' },
+  { id: 'shopping', label: 'Shopping', icon: '🛍️', color: '#D35400' },
+  { id: 'abbonamenti', label: 'Abbonamenti', icon: '📱', color: '#8E44AD' },
+  { id: 'regali', label: 'Regali', icon: '🎁', color: '#E84393' },
+  { id: 'animali', label: 'Animali', icon: '🐾', color: '#16A085' },
+  { id: 'istruzione', label: 'Istruzione', icon: '📚', color: '#2C3E50' },
+  { id: 'viaggi', label: 'Viaggi', icon: '✈️', color: '#3498DB' },
+  { id: 'investimenti', label: 'Investimenti', icon: '📈', color: '#2ECC71' },
+  { id: 'altro', label: 'Altro', icon: '💰', color: '#7F8C8D' },
 ];
 
 const AddExpense = () => {
@@ -79,86 +79,88 @@ const AddExpense = () => {
     <AppLayout>
       <div className="space-y-6 pt-2">
         <div className="flex items-center justify-between px-1">
-          <button onClick={() => navigate(-1)} className="p-2 bg-white dark:bg-[#1A1830] rounded-xl border border-slate-100 dark:border-slate-800 text-slate-600 dark:text-slate-400 active:scale-90 transition-transform shadow-sm">
+          <button onClick={() => navigate(-1)} className="p-2 bg-white dark:bg-[#122326] rounded-xl border-2 border-[#3E7B85]/10 text-[#3E7B85] active:scale-90 transition-transform shadow-sm">
             <ArrowLeft size={20} />
           </button>
-          <h1 className="text-lg font-bold text-[#1E1B3A] dark:text-[#F1F0FF]">
-            {editId ? 'Modifica spesa' : 'Nuova spesa'}
+          <h1 className="text-lg font-bold text-[#1A2A2D] dark:text-[#F4EBD0] uppercase tracking-tighter">
+            {editId ? 'Modifica Carico' : 'Nuovo Carico'}
           </h1>
           <div className="w-10" />
         </div>
 
         <form onSubmit={handleSubmit} className="space-y-6">
-          <Card className="p-6 bg-white dark:bg-[#1A1830] border-none shadow-[0_4px_20px_rgba(0,0,0,0.04)] rounded-[24px] space-y-6">
+          <Card className="p-6 bg-white dark:bg-[#122326] border-none shadow-sm rounded-[28px] space-y-6 relative overflow-hidden">
+            <div className="absolute top-0 left-0 w-full h-1 bg-[#3E7B85]" />
+            
             <div className="space-y-3">
-              <Label className="text-[11px] font-bold uppercase tracking-wider text-[#6B7280] dark:text-[#9CA3AF]">Tipo di spesa</Label>
+              <Label className="text-[10px] font-bold uppercase tracking-[0.2em] text-[#3E7B85]">Gravità del Carico</Label>
               <div className="grid grid-cols-3 gap-2">
                 <button
                   type="button"
                   onClick={() => setWeight('necessary')}
                   className={`flex flex-col items-center gap-1.5 p-3 rounded-2xl border-2 transition-all ${
                     weight === 'necessary' 
-                      ? 'border-green-500 bg-green-50 dark:bg-green-900/20 text-green-600' 
+                      ? 'border-[#27AE60] bg-[#27AE60]/10 text-[#27AE60]' 
                       : 'border-transparent bg-slate-50 dark:bg-slate-900/50 text-slate-400'
                   }`}
                 >
                   <ShieldCheck size={20} />
-                  <span className="text-[10px] font-bold">Necessaria</span>
+                  <span className="text-[9px] font-bold uppercase">Vitale</span>
                 </button>
                 <button
                   type="button"
                   onClick={() => setWeight('neutral')}
                   className={`flex flex-col items-center gap-1.5 p-3 rounded-2xl border-2 transition-all ${
                     weight === 'neutral' 
-                      ? 'border-[#6C63FF] bg-[#F5F3FF] dark:bg-[#6C63FF]/10 text-[#6C63FF]' 
+                      ? 'border-[#3E7B85] bg-[#3E7B85]/10 text-[#3E7B85]' 
                       : 'border-transparent bg-slate-50 dark:bg-slate-900/50 text-slate-400'
                   }`}
                 >
-                  <HelpCircle size={20} />
-                  <span className="text-[10px] font-bold">Neutra</span>
+                  <Package size={20} />
+                  <span className="text-[9px] font-bold uppercase">Standard</span>
                 </button>
                 <button
                   type="button"
                   onClick={() => setWeight('impulsive')}
                   className={`flex flex-col items-center gap-1.5 p-3 rounded-2xl border-2 transition-all ${
                     weight === 'impulsive' 
-                      ? 'border-red-500 bg-red-50 dark:bg-red-900/20 text-red-600' 
+                      ? 'border-[#C0392B] bg-[#C0392B]/10 text-[#C0392B]' 
                       : 'border-transparent bg-slate-50 dark:bg-slate-900/50 text-slate-400'
                   }`}
                 >
                   <Zap size={20} />
-                  <span className="text-[10px] font-bold">Impulso</span>
+                  <span className="text-[9px] font-bold uppercase">Rischio</span>
                 </button>
               </div>
             </div>
 
             <div className="space-y-2">
-              <Label className="text-[11px] font-bold uppercase tracking-wider text-[#6B7280] dark:text-[#9CA3AF]">Categoria</Label>
+              <Label className="text-[10px] font-bold uppercase tracking-[0.2em] text-[#3E7B85]">Categoria</Label>
               <div className="flex gap-3 overflow-x-auto pb-2 no-scrollbar">
                 {CATEGORIES.map((cat) => (
                   <button
                     key={cat.id}
                     type="button"
                     onClick={() => setCategory(cat.id)}
-                    className={`flex flex-col items-center gap-1 min-w-[64px] p-2 rounded-xl border-2 transition-all ${
+                    className={`flex flex-col items-center gap-1 min-w-[68px] p-3 rounded-xl border-2 transition-all ${
                       category === cat.id 
-                        ? 'border-[#6C63FF] bg-[#F5F3FF] dark:bg-[#6C63FF]/10' 
+                        ? 'border-[#E67E22] bg-[#E67E22]/10' 
                         : 'border-transparent bg-slate-50 dark:bg-slate-900/50'
                     }`}
                   >
                     <span className="text-xl">{cat.icon}</span>
-                    <span className="text-[10px] font-bold">{cat.label}</span>
+                    <span className="text-[9px] font-bold uppercase tracking-tighter">{cat.label}</span>
                   </button>
                 ))}
               </div>
             </div>
 
             <div className="space-y-2">
-              <Label htmlFor="desc" className="text-[11px] font-bold uppercase tracking-wider text-[#6B7280] dark:text-[#9CA3AF]">Descrizione</Label>
+              <Label htmlFor="desc" className="text-[10px] font-bold uppercase tracking-[0.2em] text-[#3E7B85]">Descrizione Log</Label>
               <Input 
                 id="desc"
-                placeholder="Es. Affitto, Cena, Spesa..." 
-                className="h-13 rounded-xl border-[1.5px] border-slate-200 dark:border-slate-800 bg-transparent focus:border-[#6C63FF] focus:ring-0 transition-all"
+                placeholder="Es. Rifornimento, Esca, Cena..." 
+                className="h-13 rounded-xl border-2 border-slate-100 dark:border-slate-800 bg-transparent focus:border-[#3E7B85] transition-all"
                 value={description}
                 onChange={(e) => setDescription(e.target.value)}
                 required
@@ -166,15 +168,15 @@ const AddExpense = () => {
             </div>
 
             <div className="space-y-2">
-              <Label htmlFor="amount" className="text-[11px] font-bold uppercase tracking-wider text-[#6B7280] dark:text-[#9CA3AF]">Importo Totale</Label>
+              <Label htmlFor="amount" className="text-[10px] font-bold uppercase tracking-[0.2em] text-[#3E7B85]">Valore Totale</Label>
               <div className="relative">
-                <span className="absolute left-4 top-1/2 -translate-y-1/2 text-[#1E1B3A] dark:text-[#F1F0FF] font-bold">€</span>
+                <span className="absolute left-4 top-1/2 -translate-y-1/2 text-[#1A2A2D] dark:text-[#F4EBD0] font-bold">€</span>
                 <Input 
                   id="amount"
                   type="number" 
                   step="0.01"
                   placeholder="0.00" 
-                  className="pl-10 h-13 rounded-xl border-[1.5px] border-slate-200 dark:border-slate-800 bg-transparent font-bold"
+                  className="pl-10 h-13 rounded-xl border-2 border-slate-100 dark:border-slate-800 bg-transparent font-bold text-lg"
                   value={amount}
                   onChange={(e) => setAmount(e.target.value)}
                   required
@@ -182,31 +184,25 @@ const AddExpense = () => {
               </div>
             </div>
 
-            <div className="space-y-2">
-              <Label htmlFor="date" className="text-[11px] font-bold uppercase tracking-wider text-[#6B7280] dark:text-[#9CA3AF]">Data spesa</Label>
-              <Input 
-                id="date"
-                type="date" 
-                className="h-13 rounded-xl border-[1.5px] border-slate-200 dark:border-slate-800 bg-transparent font-medium"
-                value={date}
-                onChange={(e) => setDate(e.target.value)}
-                required
-              />
-            </div>
-
-            <div className="p-4 bg-[#F4F6FB] dark:bg-slate-900/50 rounded-2xl space-y-3">
-              <div className="flex items-center gap-2 text-[#6C63FF]">
-                <CalendarRange size={18} />
-                <Label className="text-sm font-bold">Spalmatura Spesa</Label>
+            <div className="grid grid-cols-2 gap-4">
+              <div className="space-y-2">
+                <Label htmlFor="date" className="text-[10px] font-bold uppercase tracking-[0.2em] text-[#3E7B85]">Data</Label>
+                <Input 
+                  id="date"
+                  type="date" 
+                  className="h-13 rounded-xl border-2 border-slate-100 dark:border-slate-800 bg-transparent font-medium"
+                  value={date}
+                  onChange={(e) => setDate(e.target.value)}
+                  required
+                />
               </div>
               <div className="space-y-2">
-                <p className="text-[11px] text-[#6B7280] dark:text-[#9CA3AF]">Su quanti giorni vuoi dividere questo costo?</p>
+                <Label htmlFor="days" className="text-[10px] font-bold uppercase tracking-[0.2em] text-[#3E7B85]">Giorni Tratta</Label>
                 <Input 
                   id="days"
                   type="number" 
                   min="1"
-                  placeholder="30" 
-                  className="h-12 rounded-xl border-[1.5px] border-slate-200 dark:border-slate-800 bg-white dark:bg-[#1A1830]"
+                  className="h-13 rounded-xl border-2 border-slate-100 dark:border-slate-800 bg-transparent font-bold"
                   value={days}
                   onChange={(e) => setDays(e.target.value)}
                   required
@@ -214,34 +210,34 @@ const AddExpense = () => {
               </div>
             </div>
 
-            <div className="flex items-center justify-between p-4 bg-[#F4F6FB] dark:bg-slate-900/50 rounded-2xl">
+            <div className="flex items-center justify-between p-4 bg-[#F4EBD0]/50 dark:bg-black/20 rounded-2xl border-2 border-dashed border-[#3E7B85]/20">
               <div className="space-y-0.5">
                 <div className="flex items-center gap-2">
-                  <Repeat size={14} className="text-[#6C63FF]" />
-                  <Label className="text-sm font-bold text-[#1E1B3A] dark:text-[#F1F0FF]">Spesa ricorrente</Label>
+                  <Repeat size={14} className="text-[#E67E22]" />
+                  <Label className="text-xs font-bold text-[#1A2A2D] dark:text-[#F4EBD0] uppercase">Carico Ricorrente</Label>
                 </div>
-                <p className="text-[11px] text-[#6B7280] dark:text-[#9CA3AF]">Si ripete ogni mese</p>
+                <p className="text-[9px] text-slate-400 font-bold uppercase tracking-widest">Si ripete ogni mese</p>
               </div>
               <Switch 
                 checked={recurring}
                 onCheckedChange={setRecurring}
-                className="data-[state=checked]:bg-[#6C63FF]"
+                className="data-[state=checked]:bg-[#E67E22]"
               />
             </div>
           </Card>
 
-          <Card className="p-6 bg-[#F5F3FF] dark:bg-[#6C63FF]/10 border-none rounded-[24px]">
+          <Card className="p-6 bg-[#3E7B85] border-none rounded-[28px] shadow-xl shadow-[#3E7B85]/20">
             <div className="flex items-center gap-3 mb-4">
-              <Sparkles size={18} className="text-[#6C63FF]" />
-              <span className="font-bold text-[#6C63FF] text-sm">Quota Giornaliera</span>
+              <Sparkles size={18} className="text-white/60" />
+              <span className="font-bold text-white/80 text-[10px] uppercase tracking-[0.2em]">Impatto Giornaliero</span>
             </div>
             <div className="flex justify-between items-end">
               <div>
-                <p className="text-3xl font-bold text-[#6C63FF]">€ {dailyQuota}</p>
-                <p className="text-[11px] text-[#6C63FF]/70 font-bold uppercase tracking-wider">Al giorno</p>
+                <p className="text-3xl font-bold text-white">€ {dailyQuota}</p>
+                <p className="text-[9px] text-white/50 font-bold uppercase tracking-widest">Per ogni giorno di tratta</p>
               </div>
-              <Button type="submit" className="bg-gradient-to-r from-[#6C63FF] to-[#A78BFA] text-white hover:opacity-90 font-bold rounded-xl px-8 h-12 shadow-lg shadow-[#6C63FF]/20">
-                {editId ? 'Salva' : 'Aggiungi'}
+              <Button type="submit" className="bg-[#E67E22] hover:bg-[#D35400] text-white font-bold rounded-xl px-8 h-12 shadow-lg shadow-black/20 uppercase tracking-widest text-xs">
+                {editId ? 'Aggiorna' : 'Imbarca'}
               </Button>
             </div>
           </Card>
