@@ -67,7 +67,6 @@ const Index = () => {
   
   const [expenseToDelete, setExpenseToDelete] = useState<string | null>(null);
   const [longPressedExpense, setLongPressedExpense] = useState<any | null>(null);
-  const timerRef = useRef<NodeJS.Timeout | null>(null);
 
   if (!data.salary || !stats) {
     return <Onboarding onComplete={setSalary} />;
@@ -196,7 +195,6 @@ const Index = () => {
       </Dialog>
 
       <div className="space-y-6 pt-2">
-        {/* Nuova Testata Integrata */}
         <div className="px-1">
           <BoatScene 
             state={reaction || stats.mascotState} 
@@ -205,7 +203,6 @@ const Index = () => {
           />
         </div>
 
-        {/* Info Navigazione Rapida */}
         <div className="flex gap-3 px-1">
           <Card className="flex-1 p-4 bg-white dark:bg-[#122326] border-none shadow-sm rounded-2xl flex flex-col items-center gap-1">
             <Anchor size={16} className="text-[#3E7B85]" />
@@ -270,11 +267,14 @@ const Index = () => {
         </Card>
 
         <div className="space-y-4">
-          <h2 className="text-xs font-bold text-[#1A2A2D] dark:text-[#F4EBD0] px-1 uppercase tracking-widest">Log Carichi Recenti</h2>
+          <div className="flex items-center justify-between px-1">
+            <h2 className="text-xs font-bold text-[#1A2A2D] dark:text-[#F4EBD0] uppercase tracking-widest">Manifesto di Carico</h2>
+            <Ship size={14} className="text-slate-300" />
+          </div>
           <div className="space-y-3">
             {data.expenses.length === 0 ? (
               <div className="text-center py-10 bg-white dark:bg-[#122326] rounded-[24px] border-2 border-dashed border-slate-100 dark:border-slate-800">
-                <p className="text-slate-400 text-[10px] font-bold uppercase tracking-widest">Nessun carico registrato</p>
+                <p className="text-slate-400 text-[10px] font-bold uppercase tracking-widest">Stiva Vuota</p>
               </div>
             ) : (
               data.expenses.map((expense) => {
@@ -283,16 +283,21 @@ const Index = () => {
                   <div 
                     key={expense.id} 
                     onClick={() => navigate(`/add?edit=${expense.id}`)}
-                    className="bg-white dark:bg-[#122326] p-4 rounded-[20px] border-l-4 flex items-center justify-between shadow-sm active:scale-[0.98] transition-all cursor-pointer"
+                    className="bg-white dark:bg-[#122326] p-4 rounded-[20px] border-l-4 flex items-center justify-between shadow-sm active:scale-[0.98] transition-all cursor-pointer group"
                     style={{ borderLeftColor: cat.color }}
                   >
                     <div className="flex items-center gap-4">
-                      <div className="w-10 h-10 rounded-xl bg-slate-50 dark:bg-slate-900/50 flex items-center justify-center text-lg">{cat.icon}</div>
+                      <div className="w-10 h-10 rounded-xl bg-slate-50 dark:bg-slate-900/50 flex items-center justify-center text-lg group-hover:scale-110 transition-transform">
+                        {cat.icon}
+                      </div>
                       <div>
                         <h3 className="font-bold text-[#1A2A2D] dark:text-[#F4EBD0] text-sm leading-tight">{expense.description}</h3>
-                        <p className="text-[9px] text-slate-400 font-bold uppercase tracking-widest mt-1">
-                          {format(parseISO(expense.startDate), 'dd MMM')}
-                        </p>
+                        <div className="flex items-center gap-2 mt-1">
+                          <p className="text-[9px] text-slate-400 font-bold uppercase tracking-widest">
+                            {format(parseISO(expense.startDate), 'dd MMM')}
+                          </p>
+                          {expense.recurring && <Repeat size={10} className="text-[#3E7B85]" />}
+                        </div>
                       </div>
                     </div>
                     <div className="flex flex-col items-end gap-1">
@@ -302,7 +307,7 @@ const Index = () => {
                           e.stopPropagation(); 
                           setExpenseToDelete(expense.id); 
                         }} 
-                        className="p-1 text-slate-200 hover:text-[#8B2635]"
+                        className="p-1 text-slate-200 hover:text-[#8B2635] transition-colors"
                       >
                         <Trash2 size={12} />
                       </button>
