@@ -16,7 +16,8 @@ const BoatScene = ({ state, size = 200 }: BoatSceneProps) => {
       seaColor: "#2D5A63",
       waveHeight: 4,
       rain: false,
-      foamColor: "rgba(255,255,255,0.4)"
+      foamColor: "rgba(255,255,255,0.4)",
+      mistOpacity: 0.1
     },
     neutral: {
       sky: "bg-gradient-to-b from-[#34495E] to-[#2C3E50]",
@@ -24,7 +25,8 @@ const BoatScene = ({ state, size = 200 }: BoatSceneProps) => {
       seaColor: "#1A3A3A",
       waveHeight: 8,
       rain: false,
-      foamColor: "rgba(255,255,255,0.2)"
+      foamColor: "rgba(255,255,255,0.2)",
+      mistOpacity: 0.3
     },
     sad: {
       sky: "bg-gradient-to-b from-[#2C3E50] to-[#1A252F]",
@@ -32,7 +34,8 @@ const BoatScene = ({ state, size = 200 }: BoatSceneProps) => {
       seaColor: "#0F2A2A",
       waveHeight: 12,
       rain: true,
-      foamColor: "rgba(255,255,255,0.1)"
+      foamColor: "rgba(255,255,255,0.1)",
+      mistOpacity: 0.5
     },
     concerned: {
       sky: "bg-gradient-to-b from-[#1A252F] to-[#000000]",
@@ -40,7 +43,8 @@ const BoatScene = ({ state, size = 200 }: BoatSceneProps) => {
       seaColor: "#0A1F1F",
       waveHeight: 20,
       rain: true,
-      foamColor: "rgba(255,255,255,0.05)"
+      foamColor: "rgba(255,255,255,0.05)",
+      mistOpacity: 0.7
     },
     shocked: {
       sky: "bg-black",
@@ -48,7 +52,8 @@ const BoatScene = ({ state, size = 200 }: BoatSceneProps) => {
       seaColor: "#051515",
       waveHeight: 35,
       rain: true,
-      foamColor: "rgba(255,255,255,0.02)"
+      foamColor: "rgba(255,255,255,0.02)",
+      mistOpacity: 0.9
     }
   };
 
@@ -84,17 +89,26 @@ const BoatScene = ({ state, size = 200 }: BoatSceneProps) => {
         </div>
       )}
 
-      {/* Barca */}
+      {/* Nebbia di fondo */}
+      <motion.div 
+        className="absolute inset-0 pointer-events-none z-10"
+        animate={{ opacity: [config.mistOpacity * 0.5, config.mistOpacity, config.mistOpacity * 0.5] }}
+        transition={{ duration: 8, repeat: Infinity }}
+      >
+        <div className="absolute bottom-0 w-full h-1/2 bg-gradient-to-t from-white/10 to-transparent blur-xl" />
+      </motion.div>
+
+      {/* Barca - Abbassata a bottom-[22px] per immergere lo scafo */}
       <motion.div
-        className="absolute left-1/2 bottom-[45px] -translate-x-1/2 z-20"
+        className="absolute left-1/2 bottom-[22px] -translate-x-1/2 z-20"
         animate={{
-          y: [0, -config.waveHeight / 2, 0],
+          y: [0, -config.waveHeight / 3, 0],
           rotate: state === 'happy' ? [-1, 1, -1] : [-3, 4, -3],
         }}
         transition={{ duration: state === 'happy' ? 4 : 2, repeat: Infinity, ease: "easeInOut" }}
       >
         <div className="relative">
-          {/* Sistema di Fumo dal comignolo */}
+          {/* Sistema di Fumo */}
           <div className="absolute top-0 left-[42px]">
             {[...Array(3)].map((_, i) => (
               <motion.div
@@ -117,20 +131,16 @@ const BoatScene = ({ state, size = 200 }: BoatSceneProps) => {
           </div>
 
           <svg width="120" height="80" viewBox="0 0 120 80" fill="none">
-            {/* Scafo Low-Poly (Sfaccettato) */}
-            <path d="M10 45L22 68H88L105 45H10Z" fill="#5D1924" /> {/* Ombra scafo */}
-            <path d="M10 45H105L100 52H15L10 45Z" fill="#8B2635" /> {/* Bordo superiore */}
+            <path d="M10 45L22 68H88L105 45H10Z" fill="#5D1924" />
+            <path d="M10 45H105L100 52H15L10 45Z" fill="#8B2635" />
             
-            {/* Parabordi (Ruote nere sul fianco) */}
             <rect x="32" y="50" width="6" height="10" rx="3" fill="#1A2A2D" />
             <rect x="52" y="50" width="6" height="10" rx="3" fill="#1A2A2D" />
             <rect x="72" y="50" width="6" height="10" rx="3" fill="#1A2A2D" />
 
-            {/* Cabina (Crema con illuminazione interna) */}
             <path d="M55 25H85V45H55V25Z" fill="#F4EBD0" />
-            <rect x="55" y="22" width="32" height="4" fill="#4A3728" /> {/* Tetto */}
+            <rect x="55" y="22" width="32" height="4" fill="#4A3728" />
             
-            {/* Finestra con Luce Gialla Pulsante */}
             <rect x="60" y="28" width="12" height="10" fill="#1A2A2D" />
             <motion.rect 
               x="61" y="29" width="10" height="8" 
@@ -139,28 +149,24 @@ const BoatScene = ({ state, size = 200 }: BoatSceneProps) => {
               transition={{ duration: 2, repeat: Infinity }}
             />
 
-            {/* Gruetta di Poppa (Struttura metallica) */}
             <path d="M90 45L110 20" stroke="#2C3E50" strokeWidth="3" strokeLinecap="round" />
             <path d="M110 20L110 35" stroke="#2C3E50" strokeWidth="1.5" />
             <rect x="107" y="35" width="6" height="4" fill="#1A2A2D" />
 
-            {/* Casse di Carico sul ponte anteriore */}
             <rect x="25" y="35" width="14" height="10" fill="#78350F" />
             <rect x="30" y="30" width="10" height="8" fill="#92400E" />
             <path d="M25 35H39V37H25V35Z" fill="#451A03" opacity="0.3" />
 
-            {/* Albero anteriore */}
             <rect x="45" y="10" width="2" height="35" fill="#4A3728" />
             <path d="M45 15L32 32H45V15Z" fill="#F4EBD0" opacity="0.4" />
           </svg>
 
           {/* Scia Dinamica (Foam) */}
           <motion.div 
-            className="absolute -bottom-3 left-0 right-0 h-6 z-10"
+            className="absolute -bottom-1 left-0 right-0 h-4 z-10"
             animate={{ 
-              opacity: [0.2, 0.6, 0.2], 
-              scaleX: [0.8, 1.2, 0.8],
-              x: [-5, 5, -5]
+              opacity: [0.2, 0.5, 0.2], 
+              scaleX: [0.9, 1.1, 0.9],
             }}
             transition={{ duration: 3, repeat: Infinity, ease: "easeInOut" }}
           >
@@ -168,14 +174,14 @@ const BoatScene = ({ state, size = 200 }: BoatSceneProps) => {
               className="w-full h-full rounded-full" 
               style={{ 
                 backgroundColor: config.foamColor, 
-                filter: 'blur(6px)' 
+                filter: 'blur(4px)' 
               }} 
             />
           </motion.div>
         </div>
       </motion.div>
 
-      {/* Mare */}
+      {/* Mare - Z-index 30 per coprire la parte bassa dello scafo */}
       <div className="absolute bottom-0 left-0 right-0 h-[70px] z-30">
         <svg viewBox="0 0 400 70" preserveAspectRatio="none" className="w-full h-full">
           <motion.path
@@ -200,7 +206,7 @@ const BoatScene = ({ state, size = 200 }: BoatSceneProps) => {
             }}
             transition={{ duration: 4, repeat: Infinity, ease: "easeInOut" }}
             fill={config.seaColor}
-            className="opacity-50"
+            className="opacity-40"
           />
         </svg>
       </div>
