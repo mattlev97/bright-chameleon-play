@@ -1,7 +1,5 @@
-import React, { useRef, useMemo } from 'react';
-import { Canvas, useFrame } from '@react-three/fiber';
-import { OrbitControls, PerspectiveCamera, Float, Stars, Sky, Sparkles } from '@react-three/drei';
-import * as THREE from 'three';
+import React from 'react';
+import { motion, AnimatePresence } from 'framer-motion';
 import { MascotState } from './MascotBlob';
 
 interface BoatSceneProps {
@@ -10,173 +8,156 @@ interface BoatSceneProps {
   size?: number;
 }
 
-// Componente per il Mare 3D
-const Ocean = ({ state: mascotState }: { state: MascotState }) => {
-  const mesh = useRef<THREE.Mesh>(null!);
-  
-  const config = useMemo(() => {
-    const colors = {
-      happy: "#1A4A54",
-      neutral: "#16353A",
-      sad: "#0F2A2A",
-      concerned: "#0A1F1F",
-      shocked: "#051515"
-    };
-    const waveSpeeds = { happy: 0.5, neutral: 1, sad: 2, concerned: 3, shocked: 5 };
-    return { color: colors[mascotState], speed: waveSpeeds[mascotState] };
-  }, [mascotState]);
-
-  useFrame((state) => {
-    const t = state.clock.getElapsedTime() * config.speed;
-    mesh.current.position.y = -0.8 + Math.sin(t) * 0.05;
-    mesh.current.rotation.x = -Math.PI / 2 + Math.cos(t * 0.5) * 0.01;
-  });
-
-  return (
-    <mesh ref={mesh} receiveShadow>
-      <planeGeometry args={[40, 40, 32, 32]} />
-      <meshStandardMaterial 
-        color={config.color} 
-        roughness={0.1} 
-        metalness={0.6} 
-        transparent 
-        opacity={0.9}
-      />
-    </mesh>
-  );
-};
-
-// Componente Barca 3D (Low-Poly Dredge Style)
-const Boat = ({ state: mascotState }: { state: MascotState }) => {
-  const group = useRef<THREE.Group>(null!);
-
-  useFrame((state) => {
-    const t = state.clock.getElapsedTime();
-    const intensityMap: Record<MascotState, number> = { 
-      happy: 0.1, 
-      neutral: 0.2, 
-      sad: 0.5, 
-      concerned: 0.8, 
-      shocked: 1.2 
-    };
-    const intensity = intensityMap[mascotState] || 0.2;
-    
-    group.current.rotation.z = Math.sin(t * 1.5) * 0.05 * intensity;
-    group.current.rotation.x = Math.cos(t * 1.2) * 0.03 * intensity;
-    group.current.position.y = -0.4 + Math.sin(t * 2) * 0.05 * intensity;
-  });
-
-  return (
-    <group ref={group}>
-      {/* Scafo - Legno Scuro */}
-      <mesh castShadow>
-        <boxGeometry args={[1.4, 0.5, 0.7]} />
-        <meshStandardMaterial color="#2C1E12" roughness={0.8} />
-      </mesh>
-      <mesh position={[0.7, 0.1, 0]} castShadow>
-        <coneGeometry args={[0.4, 0.7, 4]} rotation={[0, 0, -Math.PI / 2]} />
-        <meshStandardMaterial color="#2C1E12" roughness={0.8} />
-      </mesh>
-      
-      {/* Cabina */}
-      <mesh position={[-0.2, 0.45, 0]} castShadow>
-        <boxGeometry args={[0.6, 0.6, 0.5]} />
-        <meshStandardMaterial color="#1A1A1A" />
-      </mesh>
-      
-      {/* Finestra Illuminata */}
-      <mesh position={[-0.1, 0.5, 0.26]}>
-        <planeGeometry args={[0.25, 0.25]} />
-        <meshBasicMaterial color="#F1C40F" />
-      </mesh>
-      <pointLight position={[-0.1, 0.5, 0.4]} intensity={1.5} color="#F1C40F" distance={3} />
-
-      {/* Albero */}
-      <mesh position={[0.2, 0.8, 0]} castShadow>
-        <cylinderGeometry args={[0.03, 0.04, 1.5]} />
-        <meshStandardMaterial color="#1A1A1A" />
-      </mesh>
-
-      {/* Luci di navigazione */}
-      <mesh position={[-0.6, 0.3, 0.35]}>
-        <sphereGeometry args={[0.04]} />
-        <meshBasicMaterial color="#FF0000" />
-      </mesh>
-      <pointLight position={[-0.6, 0.3, 0.35]} intensity={1} color="red" distance={2} />
-    </group>
-  );
-};
-
 const BoatScene = ({ state, dailyBudget, size = 300 }: BoatSceneProps) => {
-  const weatherLabels: Record<MascotState, string> = {
-    happy: "Bonaccia",
-    neutral: "Vento Leggero",
-    sad: "Mare Mosso",
-    concerned: "Tempesta",
-    shocked: "Uragano"
+  const weatherConfig = {
+    happy: {
+      label: "Bonaccia",
+      bg: "https://images.unsplash.com/photo-1500375592092-40eb2168fd21?auto=format&fit=crop&q=80&w=800",
+      overlay: "bg-orange-500/10",
+      boatY: [0, -10, 0],
+      rotation: [0, 2, 0],
+      showRain: false,
+      fog: "opacity-0"
+    },
+    neutral: {
+      label: "Vento Leggero",
+      bg: "https://images.unsplash.com/photo-1439405326854-014607f694d7?auto=format&fit=crop&q=80&w=800",
+      overlay: "bg-blue-500/5",
+      boatY: [0, -15, 0],
+      rotation: [-1, 3, -1],
+      showRain: false,
+      fog: "opacity-20"
+    },
+    sad: {
+      label: "Mare Mosso",
+      bg: "https://images.unsplash.com/photo-1518837695005-2083093ee35b?auto=format&fit=crop&q=80&w=800",
+      overlay: "bg-slate-900/40",
+      boatY: [0, -25, 0],
+      rotation: [-3, 5, -3],
+      showRain: true,
+      fog: "opacity-40"
+    },
+    concerned: {
+      label: "Tempesta",
+      bg: "https://images.unsplash.com/photo-1475116127127-e3ce09ee84e1?auto=format&fit=crop&q=80&w=800",
+      overlay: "bg-indigo-950/60",
+      boatY: [0, -35, 0],
+      rotation: [-5, 8, -5],
+      showRain: true,
+      fog: "opacity-60"
+    },
+    shocked: {
+      label: "Uragano",
+      bg: "https://images.unsplash.com/photo-1446776811953-b23d57bd21aa?auto=format&fit=crop&q=80&w=800",
+      overlay: "bg-black/80",
+      boatY: [0, -45, 0],
+      rotation: [-8, 12, -8],
+      showRain: true,
+      fog: "opacity-80"
+    }
   };
 
+  const config = weatherConfig[state] || weatherConfig.neutral;
+
   return (
-    <div className="relative w-full rounded-[32px] overflow-hidden shadow-2xl bg-[#051515]" style={{ height: size }}>
+    <div className="relative w-full rounded-[40px] overflow-hidden shadow-2xl bg-slate-950" style={{ height: size }}>
+      {/* Sfondo Dinamico */}
+      <AnimatePresence mode="wait">
+        <motion.div
+          key={state}
+          initial={{ opacity: 0, scale: 1.1 }}
+          animate={{ opacity: 1, scale: 1 }}
+          exit={{ opacity: 0 }}
+          transition={{ duration: 1.5 }}
+          className="absolute inset-0"
+        >
+          <img 
+            src={config.bg} 
+            className="w-full h-full object-cover brightness-75 contrast-125"
+            alt="Sea background"
+          />
+          <div className={`absolute inset-0 ${config.overlay} mix-blend-multiply transition-colors duration-1000`} />
+        </motion.div>
+      </AnimatePresence>
+
+      {/* Effetto Nebbia */}
+      <div className={`absolute inset-0 bg-gradient-to-t from-slate-900 via-transparent to-transparent ${config.fog} transition-opacity duration-1000`} />
+
+      {/* Pioggia */}
+      {config.showRain && (
+        <div className="absolute inset-0 pointer-events-none overflow-hidden">
+          {[...Array(20)].map((_, i) => (
+            <motion.div
+              key={i}
+              initial={{ y: -100, x: Math.random() * 400 }}
+              animate={{ y: 500, x: (Math.random() * 400) - 50 }}
+              transition={{ 
+                duration: 0.5 + Math.random() * 0.5, 
+                repeat: Infinity, 
+                ease: "linear",
+                delay: Math.random() * 2
+              }}
+              className="absolute w-[1px] h-10 bg-white/20 rotate-[15deg]"
+            />
+          ))}
+        </div>
+      )}
+
+      {/* La Barca (Illustrazione Dettagliata) */}
+      <motion.div
+        animate={{ 
+          y: config.boatY,
+          rotate: config.rotation
+        }}
+        transition={{ 
+          duration: state === 'happy' ? 4 : 2, 
+          repeat: Infinity, 
+          ease: "easeInOut" 
+        }}
+        className="absolute bottom-12 left-1/2 -translate-x-1/2 w-48 h-48 z-20 drop-shadow-[0_20px_30px_rgba(0,0,0,0.8)]"
+      >
+        <svg viewBox="0 0 200 200" className="w-full h-full">
+          {/* Scafo con texture legno */}
+          <path 
+            d="M20,120 Q20,150 100,150 Q180,150 180,120 L160,100 L40,100 Z" 
+            fill="#2C1E12" 
+            stroke="#1A1108" 
+            strokeWidth="2"
+          />
+          <path d="M30,110 L170,110" stroke="#3D2B1D" strokeWidth="1" opacity="0.5" />
+          <path d="M35,120 L165,120" stroke="#3D2B1D" strokeWidth="1" opacity="0.5" />
+          
+          {/* Cabina */}
+          <rect x="70" y="60" width="50" height="45" fill="#1A1A1A" rx="2" />
+          <rect x="75" y="65" width="15" height="15" fill={state === 'shocked' ? '#333' : '#F1C40F'} className="animate-pulse" />
+          
+          {/* Albero e Dettagli */}
+          <line x1="100" y1="60" x2="100" y2="20" stroke="#1A1A1A" strokeWidth="4" />
+          <path d="M100,30 L140,80" stroke="#1A1A1A" strokeWidth="1" opacity="0.4" />
+          
+          {/* Luci di navigazione */}
+          <circle cx="35" cy="105" r="3" fill="#FF0000" className="animate-pulse" />
+          <circle cx="165" cy="105" r="3" fill="#00FF00" className="animate-pulse" />
+        </svg>
+      </motion.div>
+
       {/* UI Overlay */}
       <div className="absolute top-8 left-8 z-50 pointer-events-none">
-        <p className="text-[10px] font-bold text-white/30 uppercase tracking-[0.3em]">Meteo</p>
-        <h2 className="text-2xl font-bold text-[#F4EBD0] tracking-tight drop-shadow-md">{weatherLabels[state]}</h2>
+        <p className="text-[10px] font-bold text-white/40 uppercase tracking-[0.3em]">Meteo</p>
+        <h2 className="text-2xl font-bold text-[#F4EBD0] tracking-tight drop-shadow-lg">{config.label}</h2>
       </div>
 
       <div className="absolute top-8 right-8 z-50 text-right pointer-events-none">
-        <p className="text-[10px] font-bold text-white/30 uppercase tracking-[0.3em]">Oggi Puoi</p>
-        <h2 className="text-3xl font-bold text-[#F4EBD0] tracking-tighter drop-shadow-md">€ {dailyBudget.toFixed(0)}</h2>
+        <p className="text-[10px] font-bold text-white/40 uppercase tracking-[0.3em]">Oggi Puoi</p>
+        <h2 className="text-3xl font-bold text-[#F4EBD0] tracking-tighter drop-shadow-lg">€ {dailyBudget.toFixed(0)}</h2>
       </div>
 
-      {/* Scena 3D */}
-      <Canvas shadows camera={{ position: [4, 3, 6], fov: 35 }}>
-        <OrbitControls 
-          enableZoom={false} 
-          enablePan={false} 
-          minPolarAngle={Math.PI / 4} 
-          maxPolarAngle={Math.PI / 2.2}
-          autoRotate
-          autoRotateSpeed={0.5}
-        />
-        
-        {/* Illuminazione */}
-        <ambientLight intensity={0.4} />
-        <directionalLight 
-          position={[10, 10, 5]} 
-          intensity={1.2} 
-          castShadow 
-          shadow-mapSize={[1024, 1024]}
-        />
-        <spotLight position={[-5, 10, 10]} angle={0.15} penumbra={1} intensity={1} />
-        
-        {/* Atmosfera */}
-        <Sky 
-          sunPosition={[100, 20, 100]} 
-          turbidity={state === 'happy' ? 0.1 : 8} 
-          rayleigh={state === 'happy' ? 0.5 : 3} 
-        />
-        <Stars radius={100} depth={50} count={5000} factor={4} saturation={0} fade speed={1} />
-        
-        <Sparkles 
-          count={50} 
-          scale={6} 
-          size={2} 
-          speed={0.3} 
-          opacity={0.4} 
-          color="#F4EBD0" 
-        />
-
-        {/* Elementi Scena */}
-        <Boat state={state} />
-        <Ocean state={state} />
-
-        {/* Nebbia per profondità */}
-        <fog attach="fog" args={['#051515', 5, 20]} />
-      </Canvas>
-
-      {/* Overlay Gradiente */}
-      <div className="absolute inset-0 pointer-events-none bg-gradient-to-t from-[#051515]/60 via-transparent to-transparent" />
+      {/* Onde in primo piano per profondità */}
+      <motion.div 
+        animate={{ x: [-20, 20, -20] }}
+        transition={{ duration: 5, repeat: Infinity, ease: "easeInOut" }}
+        className="absolute bottom-0 left-[-10%] w-[120%] h-24 bg-gradient-to-t from-slate-950 to-transparent opacity-80 z-30" 
+      />
     </div>
   );
 };
