@@ -3,10 +3,10 @@ import AppLayout from '../components/layout/AppLayout';
 import { useBudget } from '../hooks/use-budget';
 import { Card } from '@/components/ui/card';
 import { Progress } from '@/components/ui/progress';
-import { Trophy, Star, Target, Zap, Crown, Medal, Lock } from 'lucide-react';
+import { Anchor, Compass, Gift, HardDrive, Key, Lock, Map, Shield, Skull } from 'lucide-react';
 import BoatScene from '../components/budget/BoatScene';
 
-interface TrophyItem {
+interface RelicItem {
   id: string;
   title: string;
   description: string;
@@ -24,56 +24,56 @@ const Trophies = () => {
   const expensesCount = data.expenses.length;
   const daysActive = data.dailyHistory.length || 1;
 
-  const trophies: TrophyItem[] = [
+  const relics: RelicItem[] = [
     {
-      id: 'saver_100',
-      title: 'Navigatore Esperto',
-      description: 'Giorni con mare calmo e budget intatto',
-      icon: <Crown size={24} />,
-      color: '#F59E0B',
-      requirement: 5,
-      current: Math.min(5, Math.floor(daysActive / 3)),
+      id: 'compass',
+      title: 'Bussola d\'Ottone',
+      description: 'Mantieni la rotta per 7 giorni senza sforare il budget.',
+      icon: <Compass size={28} />,
+      color: '#B45309',
+      requirement: 7,
+      current: Math.min(7, daysActive),
       unit: 'gg'
     },
     {
-      id: 'saver_50',
-      title: 'Marinaio',
-      description: 'Giorni con almeno il 50% risparmiato',
-      icon: <Medal size={24} />,
-      color: '#10B981',
-      requirement: 10,
-      current: Math.min(10, Math.floor(daysActive / 1.5)),
-      unit: 'gg'
-    },
-    {
-      id: 'total_savings',
-      title: 'Tesoro del Pirata',
-      description: 'Risparmio totale accumulato',
-      icon: <Trophy size={24} />,
-      color: '#6C63FF',
+      id: 'chest',
+      title: 'Forziere del Capitano',
+      description: 'Accumula una riserva di risparmio superiore a 500€.',
+      icon: <Gift size={28} />,
+      color: '#1E40AF',
       requirement: 500,
       current: totalSaved,
       unit: '€'
     },
     {
-      id: 'consistency',
-      title: 'Log di Bordo',
-      description: 'Spese tracciate con precisione',
-      icon: <Target size={24} />,
-      color: '#3B82F6',
+      id: 'key',
+      title: 'Chiave Arrugginita',
+      description: 'Registra 20 carichi nel tuo log di bordo.',
+      icon: <Key size={28} />,
+      color: '#4B5563',
       requirement: 20,
       current: expensesCount,
-      unit: 'spese'
+      unit: 'log'
     },
     {
-      id: 'impulse_control',
-      title: 'Timone Fermo',
-      description: 'Evita le tempeste d\'impulso',
-      icon: <Zap size={24} />,
-      color: '#EC4899',
+      id: 'idol',
+      title: 'Idolo Abissale',
+      description: 'Evita spese d\'impulso per un\'intera settimana.',
+      icon: <Skull size={28} />,
+      color: '#065F46',
       requirement: 7,
       current: Math.max(0, 7 - data.expenses.filter(e => e.weight === 'impulsive').length),
       unit: 'gg'
+    },
+    {
+      id: 'anchor',
+      title: 'Ancora d\'Oro',
+      description: 'Raggiungi il porto (fine mese) con il budget in attivo.',
+      icon: <Anchor size={28} />,
+      color: '#D97706',
+      requirement: 1,
+      current: stats.isOnTrack ? 1 : 0,
+      unit: 'porto'
     }
   ];
 
@@ -82,75 +82,89 @@ const Trophies = () => {
       <div className="space-y-8 pt-4">
         <div className="text-center space-y-4">
           <div className="flex justify-center px-4">
-            <div className="relative w-full max-w-[280px]">
+            <div className="relative w-full max-w-[300px]">
               <BoatScene 
-                state={totalSaved > 100 ? 'happy' : 'neutral'} 
-                size={140} 
+                state={stats.mascotState} 
+                dailyBudget={stats.dailyBudget}
+                size={180} 
               />
-              {totalSaved > 500 && (
-                <div className="absolute -top-2 -right-2 bg-yellow-400 rounded-full p-1 shadow-lg animate-bounce z-50">
-                  <Crown size={20} className="text-white" />
-                </div>
-              )}
             </div>
           </div>
-          <div>
-            <h1 className="text-2xl font-bold text-[#1E1B3A] dark:text-[#F1F0FF]">Sala dei Trofei</h1>
-            <p className="text-sm text-slate-500 dark:text-slate-400">Ogni moneta risparmiata è un miglio verso la gloria!</p>
+          <div className="space-y-1">
+            <h1 className="text-3xl font-bold text-[#F4EBD0] tracking-tighter uppercase italic">Reliquie Recuperate</h1>
+            <p className="text-xs text-slate-500 uppercase tracking-[0.2em]">Oggetti emersi dalle profondità del tuo risparmio</p>
           </div>
         </div>
 
         <div className="grid gap-4">
-          {trophies.map((t) => {
-            const isAchieved = t.current >= t.requirement;
-            const progress = Math.min(100, (t.current / t.requirement) * 100);
+          {relics.map((relic) => {
+            const isAchieved = relic.current >= relic.requirement;
+            const progress = Math.min(100, (relic.current / relic.requirement) * 100);
 
             return (
-              <Card key={t.id} className={`p-5 border-none shadow-sm rounded-[24px] relative overflow-hidden transition-all duration-500 ${isAchieved ? 'bg-white dark:bg-[#1A1830]' : 'bg-slate-50/50 dark:bg-slate-900/30 opacity-80'}`}>
-                {!isAchieved && (
-                  <div className="absolute top-3 right-3 text-slate-300">
-                    <Lock size={16} />
-                  </div>
-                )}
-                
-                <div className="flex items-center gap-4">
+              <Card 
+                key={relic.id} 
+                className={`p-6 border-none shadow-2xl rounded-[24px] relative overflow-hidden transition-all duration-700 ${
+                  isAchieved 
+                    ? 'bg-gradient-to-br from-[#1A1A1A] to-[#0A0A0A] border-t border-white/10' 
+                    : 'bg-black/40 opacity-60 grayscale'
+                }`}
+              >
+                <div className="flex items-center gap-5">
                   <div 
-                    className={`w-14 h-14 rounded-2xl flex items-center justify-center shadow-inner transition-all duration-700 ${isAchieved ? 'scale-110' : 'grayscale'}`}
-                    style={{ backgroundColor: `${t.color}15`, color: t.color }}
+                    className={`w-16 h-16 rounded-2xl flex items-center justify-center shadow-2xl transition-all duration-1000 ${
+                      isAchieved ? 'scale-110 rotate-3' : 'scale-90'
+                    }`}
+                    style={{ 
+                      backgroundColor: isAchieved ? `${relic.color}20` : '#111',
+                      color: isAchieved ? relic.color : '#333',
+                      boxShadow: isAchieved ? `0 0 20px ${relic.color}30` : 'none'
+                    }}
                   >
-                    {t.icon}
+                    {isAchieved ? relic.icon : <Lock size={24} />}
                   </div>
                   
                   <div className="flex-1 space-y-1">
                     <div className="flex justify-between items-end">
-                      <h3 className={`font-bold text-sm ${isAchieved ? 'text-[#1E1B3A] dark:text-[#F1F0FF]' : 'text-slate-400'}`}>
-                        {t.title}
+                      <h3 className={`font-bold text-base tracking-tight ${isAchieved ? 'text-[#F4EBD0]' : 'text-slate-600'}`}>
+                        {relic.title}
                       </h3>
-                      <span className="text-[10px] font-bold text-slate-400">
-                        {Math.round(t.current)} / {t.requirement} {t.unit}
+                      <span className="text-[10px] font-bold text-slate-500 uppercase">
+                        {Math.round(relic.current)}/{relic.requirement}
                       </span>
                     </div>
-                    <p className="text-[11px] text-slate-400 leading-tight">{t.description}</p>
-                    <div className="pt-2">
-                      <Progress value={progress} className="h-1.5 bg-slate-100 dark:bg-slate-800" indicatorClassName={isAchieved ? 'bg-gradient-to-r from-[#6C63FF] to-[#A78BFA]' : ''} />
+                    <p className="text-xs text-slate-500 leading-relaxed italic">{relic.description}</p>
+                    <div className="pt-3">
+                      <div className="h-1.5 w-full bg-white/5 rounded-full overflow-hidden">
+                        <div 
+                          className="h-full transition-all duration-1000"
+                          style={{ 
+                            width: `${progress}%`, 
+                            backgroundColor: isAchieved ? relic.color : '#333',
+                            boxShadow: isAchieved ? `0 0 10px ${relic.color}` : 'none'
+                          }}
+                        />
+                      </div>
                     </div>
                   </div>
                 </div>
 
+                {/* Effetto "Glow" per reliquie sbloccate */}
                 {isAchieved && (
-                  <div className="absolute -bottom-2 -right-2 opacity-5">
-                    <Star size={80} fill="currentColor" />
-                  </div>
+                  <div 
+                    className="absolute -right-10 -bottom-10 w-32 h-32 blur-[60px] opacity-20"
+                    style={{ backgroundColor: relic.color }}
+                  />
                 )}
               </Card>
             );
           })}
         </div>
 
-        <div className="bg-[#F5F3FF] dark:bg-[#6C63FF]/10 p-6 rounded-[28px] text-center space-y-2">
-          <p className="text-xs font-bold text-[#6C63FF] uppercase tracking-widest">Prossimo Livello</p>
-          <p className="text-sm text-[#1E1B3A] dark:text-[#F1F0FF] font-medium">
-            Risparmia altri <span className="font-bold text-[#6C63FF]">€ 42</span> per sbloccare il prossimo trofeo!
+        <div className="bg-black/60 border border-white/5 p-6 rounded-[32px] text-center space-y-3">
+          <p className="text-[10px] font-bold text-[#E67E22] uppercase tracking-[0.3em]">Prossima Immersione</p>
+          <p className="text-sm text-[#F4EBD0] font-medium leading-relaxed">
+            Continua a navigare con prudenza per far emergere nuovi segreti dagli abissi.
           </p>
         </div>
       </div>
