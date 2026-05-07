@@ -1,5 +1,7 @@
-import React from 'react';
-import { motion } from 'framer-motion';
+import React, { useRef, useMemo } from 'react';
+import { Canvas, useFrame } from '@react-three/fiber';
+import { OrbitControls, PerspectiveCamera, Float, Stars, Sky, Cloud, Sparkles } from '@react-three/drei';
+import * as THREE from 'three';
 import { MascotState } from './MascotBlob';
 
 interface BoatSceneProps {
@@ -7,6 +9,95 @@ interface BoatSceneProps {
   dailyBudget: number;
   size?: number;
 }
+
+// Componente per il Mare 3D
+const Ocean = ({ state }: { state: MascotState }) => {
+  const mesh = useRef<THREE.Mesh>(null!);
+  
+  const config = useMemo(() => {
+    const colors = {
+      happy: "#1A4A54",
+      neutral: "#16353A",
+      sad: "#0F2A2A",
+      concerned: "#0A1F1F",
+      shocked: "#051515"
+    };
+    const waveSpeeds = { happy: 0.5, neutral: 1, sad: 2, concerned: 3, shocked: 5 };
+    return { color: colors[state], speed: waveSpeeds[state] };
+  }, [state]);
+
+  useFrame((state) => {
+    const t = state.clock.getElapsedTime() * config.speed;
+    mesh.current.position.y = Math.sin(t) * 0.1;
+    mesh.current.rotation.x = -Math.PI / 2 + Math.cos(t * 0.5) * 0.02;
+  });
+
+  return (
+    <mesh ref={mesh} position={[0, -0.5, 0]} receiveShadow>
+      <planeGeometry args={[20, 20, 32, 32]} />
+      <meshStandardMaterial 
+        color={config.color} 
+        roughness={0.1} 
+        metalness={0.8} 
+        transparent 
+        opacity={0.9}
+      />
+    </mesh>
+  );
+};
+
+// Componente Barca 3D (Low-Poly Dredge Style)
+const Boat = ({ state }: { state: MascotState }) => {
+  const group = useRef<THREE.Group>(null!);
+
+  useFrame((state) => {
+    const t = state.clock.getElapsedTime();
+    const intensity = { happy: 0.1, neutral: 0.2, sad: 0.5, concerned: 0.8, shocked: 1.2 }[state.state as MascotState] || 0.2;
+    group.current.rotation.z = Math.sin(t * 1.5) * 0.05 * intensity;
+    group.current.rotation.x = Math.cos(t * 1.2) * 0.03 * intensity;
+    group.current.position.y = Math.sin(t * 2) * 0.05 * intensity;
+  });
+
+  return (
+    <group ref={group}>
+      {/* Scafo */}
+      <mesh castShadow>
+        <boxGeometry args={[1.2, 0.4, 0.6]} />
+        <meshStandardMaterial color="#121212" />
+      </mesh>
+      <mesh position={[0.6, 0.1, 0]} castShadow>
+        <coneGeometry args={[0.35, 0.6, 4]} rotation={[0, 0, -Math.PI / 2]} />
+        <meshStandardMaterial color="#121212" />
+      </mesh>
+      
+      {/* Cabina */}
+      <mesh position={[-0.2, 0.4, 0]} castShadow>
+        <boxGeometry args={[0.5, 0.5, 0.4]} />
+        <meshStandardMaterial color="#1A1A1A" />
+      </mesh>
+      
+      {/* Finestra Illuminata */}
+      <mesh position={[-0.1, 0.45, 0.21]}>
+        <planeGeometry args={[0.2, 0.2]} />
+        <meshBasicMaterial color="#F1C40F" />
+      </mesh>
+      <pointLight position={[-0.1, 0.45, 0.3]} intensity={0.5} color="#F1C40F" distance={2} />
+
+      {/* Albero */}
+      <mesh position={[0.2, 0.6, 0]} castShadow>
+        <cylinderGeometry args={[0.02, 0.03, 1.2]} />
+        <meshStandardMaterial color="#1A1A1A" />
+      </mesh>
+
+      {/* Luci di navigazione */}
+      <mesh position={[-0.5, 0.3, 0.3]}>
+        <sphereGeometry args={[0.03]} />
+        <meshBasicMaterial color="red" />
+      </mesh>
+      <pointLight position={[-0.5, 0.3, 0.3]} intensity={0.8} color="red" distance={1} />
+    </group>
+  );
+};
 
 const BoatScene = ({ state, dailyBudget, size = 300 }: BoatSceneProps) => {
   const weatherLabels: Record<MascotState, string> = {
@@ -17,209 +108,58 @@ const BoatScene = ({ state, dailyBudget, size = 300 }: BoatSceneProps) => {
     shocked: "Uragano"
   };
 
-  const weatherConfig = {
-    happy: {
-      sky: "bg-gradient-to-b from-[#2C1E14] via-[#4A2C1B] to-[#E67E22]",
-      seaColor: "#1A4A54",
-      waveHeight: 4,
-      mistOpacity: 0.1,
-      glowColor: "rgba(244, 235, 208, 0.3)"
-    },
-    neutral: {
-      sky: "bg-gradient-to-b from-[#1A252F] via-[#2C3E50] to-[#34495E]",
-      seaColor: "#16353A",
-      waveHeight: 8,
-      mistOpacity: 0.3,
-      glowColor: "rgba(200, 200, 255, 0.1)"
-    },
-    sad: {
-      sky: "bg-gradient-to-b from-[#0F172A] via-[#1E293B] to-[#334155]",
-      seaColor: "#0F2A2A",
-      waveHeight: 15,
-      mistOpacity: 0.5,
-      glowColor: "rgba(100, 100, 150, 0.1)"
-    },
-    concerned: {
-      sky: "bg-gradient-to-b from-[#020617] via-[#0F172A] to-[#1E293B]",
-      seaColor: "#0A1F1F",
-      waveHeight: 25,
-      mistOpacity: 0.7,
-      glowColor: "rgba(255, 100, 0, 0.05)"
-    },
-    shocked: {
-      sky: "bg-black",
-      seaColor: "#051515",
-      waveHeight: 40,
-      mistOpacity: 0.9,
-      glowColor: "rgba(255, 0, 0, 0.05)"
-    }
-  };
-
-  const config = weatherConfig[state];
-
   return (
-    <div 
-      className={`relative overflow-hidden rounded-[32px] transition-all duration-1000 ${config.sky} shadow-2xl border-b-4 border-black/20`}
-      style={{ width: '100%', height: size }}
-    >
-      {/* Overlay Testuali */}
-      <div className="absolute top-8 left-8 z-50">
+    <div className="relative w-full rounded-[32px] overflow-hidden shadow-2xl bg-black" style={{ height: size }}>
+      {/* UI Overlay */}
+      <div className="absolute top-8 left-8 z-50 pointer-events-none">
         <p className="text-[10px] font-bold text-white/30 uppercase tracking-[0.3em]">Meteo</p>
         <h2 className="text-2xl font-bold text-[#F4EBD0] tracking-tight drop-shadow-md">{weatherLabels[state]}</h2>
       </div>
 
-      <div className="absolute top-8 right-8 z-50 text-right">
+      <div className="absolute top-8 right-8 z-50 text-right pointer-events-none">
         <p className="text-[10px] font-bold text-white/30 uppercase tracking-[0.3em]">Oggi Puoi</p>
         <h2 className="text-3xl font-bold text-[#F4EBD0] tracking-tighter drop-shadow-md">€ {dailyBudget.toFixed(0)}</h2>
       </div>
 
-      {/* Luna/Sole con alone */}
-      <div className="absolute top-20 right-20">
-        <motion.div
-          animate={{ scale: [1, 1.05, 1], opacity: [0.6, 0.8, 0.6] }}
-          transition={{ duration: 8, repeat: Infinity }}
-          className="w-24 h-24 rounded-full bg-[#F4EBD0]/20 blur-2xl"
-        />
-        <div className="absolute inset-0 flex items-center justify-center">
-          <div className="w-12 h-12 rounded-full bg-[#F4EBD0]/80 blur-[2px]" />
-        </div>
-      </div>
-
-      {/* Isola Lontana */}
-      <div className="absolute right-[-40px] bottom-[80px] z-10 opacity-40">
-        <svg width="240" height="120" viewBox="0 0 240 120">
-          <path d="M0 120L60 40L120 80L180 20L240 120H0Z" fill="#1A1A1A" />
-        </svg>
-      </div>
-
-      {/* Faro Dettagliato */}
-      <div className="absolute left-12 bottom-[85px] z-10">
-        <svg width="30" height="120" viewBox="0 0 30 120">
-          <path d="M5 120L8 30H22L25 120H5Z" fill="#1A1A1A" />
-          <rect x="8" y="40" width="14" height="6" fill="#8B2635" />
-          <rect x="8" y="65" width="14" height="6" fill="#8B2635" />
-          <rect x="8" y="90" width="14" height="6" fill="#8B2635" />
-          <path d="M5 30H25V35H5V30Z" fill="#333" />
-          <circle cx="15" cy="22" r="5" fill="#F1C40F" className="blur-[1px]" />
-        </svg>
-        {/* Fascio di luce */}
-        <motion.div
-          className="absolute top-[18px] left-[15px] w-[250px] h-[40px] bg-yellow-200/10 blur-xl origin-left"
-          animate={{ rotate: [0, 360] }}
-          transition={{ duration: 10, repeat: Infinity, ease: "linear" }}
-          style={{ clipPath: 'polygon(0 40%, 100% 0, 100% 100%, 0 60%)' }}
-        />
-      </div>
-
-      {/* Barca "Dredge Style" */}
-      <motion.div
-        className="absolute left-1/2 bottom-[35px] -translate-x-1/2 z-20"
-        animate={{
-          y: [0, -config.waveHeight / 4, 0],
-          rotate: state === 'happy' ? [-1, 1, -1] : [-2, 3, -2],
-        }}
-        transition={{ duration: 4, repeat: Infinity, ease: "easeInOut" }}
-      >
-        <div className="relative">
-          <svg width="140" height="100" viewBox="0 0 140 100" fill="none">
-            {/* Scafo */}
-            <path d="M10 50C10 50 15 85 30 85H110C125 85 130 50 130 50H10Z" fill="#121212" />
-            <path d="M10 50H130L125 58H15L10 50Z" fill="#451A03" /> {/* Linea di ruggine */}
-            
-            {/* Cabina */}
-            <path d="M75 25H110V50H75V25Z" fill="#1A1A1A" />
-            <path d="M75 25L110 20V25H75Z" fill="#2C2C2C" /> {/* Tetto */}
-            
-            {/* Finestre Cabina */}
-            <rect x="80" y="30" width="10" height="12" fill="#1A2A2D" />
-            <motion.rect 
-              x="81" y="31" width="8" height="10" 
-              fill="#F1C40F" 
-              animate={{ opacity: [0.2, 0.6, 0.2] }}
-              transition={{ duration: 3, repeat: Infinity }}
-            />
-            <rect x="95" y="30" width="10" height="12" fill="#1A2A2D" />
-            
-            {/* Albero e Sartiame */}
-            <rect x="45" y="10" width="3" height="45" fill="#1A1A1A" />
-            <path d="M45 15L20 50" stroke="#1A1A1A" strokeWidth="1" opacity="0.5" />
-            <path d="M45 15L75 35" stroke="#1A1A1A" strokeWidth="1" opacity="0.5" />
-            
-            {/* Gru/Attrezzatura poppa */}
-            <path d="M115 50L135 25" stroke="#1A1A1A" strokeWidth="3" strokeLinecap="round" />
-            <circle cx="135" cy="25" r="2" fill="#333" />
-          </svg>
-          
-          {/* Luce di posizione */}
-          <motion.div 
-            className="absolute top-[22px] right-[25px] w-2 h-2 bg-red-500 rounded-full blur-[1px]"
-            animate={{ opacity: [0.4, 1, 0.4] }}
-            transition={{ duration: 1.5, repeat: Infinity }}
-          />
-        </div>
-      </motion.div>
-
-      {/* Mare Multistrato */}
-      <div className="absolute bottom-0 left-0 right-0 h-[100px] z-30">
-        {/* Riflesso Luce */}
-        <motion.div 
-          className="absolute left-1/2 top-10 -translate-x-1/2 w-40 h-20 bg-yellow-200/5 blur-3xl"
-          animate={{ opacity: [0.1, 0.2, 0.1], scaleX: [1, 1.2, 1] }}
-          transition={{ duration: 5, repeat: Infinity }}
-        />
+      {/* Scena 3D */}
+      <Canvas shadows>
+        <PerspectiveCamera makeDefault position={[3, 2, 5]} fov={35} />
         
-        <svg viewBox="0 0 400 100" preserveAspectRatio="none" className="w-full h-full">
-          {/* Onda Posteriore */}
-          <motion.path
-            animate={{
-              d: [
-                `M0 50 Q100 ${50 - config.waveHeight} 200 50 T400 50 V100 H0 Z`,
-                `M0 50 Q100 ${50 + config.waveHeight} 200 50 T400 50 V100 H0 Z`,
-                `M0 50 Q100 ${50 - config.waveHeight} 200 50 T400 50 V100 H0 Z`
-              ]
-            }}
-            transition={{ duration: 5, repeat: Infinity, ease: "easeInOut" }}
-            fill={config.seaColor}
-            opacity="0.6"
-          />
-          {/* Onda Principale */}
-          <motion.path
-            animate={{
-              d: [
-                `M0 60 Q100 ${60 + config.waveHeight} 200 60 T400 60 V100 H0 Z`,
-                `M0 60 Q100 ${60 - config.waveHeight} 200 60 T400 60 V100 H0 Z`,
-                `M0 60 Q100 ${60 + config.waveHeight} 200 60 T400 60 V100 H0 Z`
-              ]
-            }}
-            transition={{ duration: 4, repeat: Infinity, ease: "easeInOut" }}
-            fill={config.seaColor}
-          />
-        </svg>
-      </div>
+        {/* Illuminazione */}
+        <ambientLight intensity={0.2} />
+        <pointLight position={[10, 10, 10]} intensity={1.5} castShadow />
+        <spotLight position={[-5, 5, 5]} angle={0.15} penumbra={1} intensity={2} castShadow />
+        
+        {/* Atmosfera */}
+        <Sky 
+          sunPosition={[100, 10, 100]} 
+          turbidity={state === 'happy' ? 0.1 : 10} 
+          rayleigh={state === 'happy' ? 0.5 : 5} 
+        />
+        <Stars radius={100} depth={50} count={5000} factor={4} saturation={0} fade speed={1} />
+        
+        <Sparkles 
+          count={40} 
+          scale={5} 
+          size={2} 
+          speed={0.4} 
+          opacity={0.2} 
+          color="#F4EBD0" 
+        />
 
-      {/* Particelle Atmosferiche (Embers/Mist) */}
-      <div className="absolute inset-0 pointer-events-none z-40">
-        {[...Array(10)].map((_, i) => (
-          <motion.div
-            key={i}
-            className="absolute w-1 h-1 bg-[#F4EBD0]/20 rounded-full"
-            style={{ 
-              left: `${Math.random() * 100}%`, 
-              top: `${Math.random() * 100}%` 
-            }}
-            animate={{ 
-              y: [0, -40], 
-              x: [0, (Math.random() - 0.5) * 30],
-              opacity: [0, 0.4, 0] 
-            }}
-            transition={{ 
-              duration: 4 + Math.random() * 4, 
-              repeat: Infinity, 
-              delay: Math.random() * 5 
-            }}
-          />
-        ))}
-      </div>
+        {/* Elementi Scena */}
+        <Float speed={2} rotationIntensity={0.5} floatIntensity={0.5}>
+          <Boat state={state} />
+        </Float>
+        
+        <Ocean state={state} />
+
+        {/* Nebbia */}
+        <fog attach="fog" args={['#051515', 5, 15]} />
+      </Canvas>
+
+      {/* Overlay Gradiente per profondità */}
+      <div className="absolute inset-0 pointer-events-none bg-gradient-to-t from-black/40 via-transparent to-transparent" />
     </div>
   );
 };
