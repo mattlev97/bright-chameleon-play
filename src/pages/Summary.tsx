@@ -2,11 +2,12 @@ import React, { useState } from 'react';
 import { useBudget } from '../hooks/use-budget';
 import AppLayout from '../components/layout/AppLayout';
 import { Card } from '@/components/ui/card';
-import { Tabs, TabsList, TabsTrigger } from '@/tabs';
+import { Tabs, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Pie } from 'react-chartjs-2';
 import { Chart as ChartJS, ArcElement, Tooltip, Legend } from 'chart.js';
 import { CategoryId } from '../types/budget';
 import { Compass, Map as MapIcon, Anchor, Wind, Ship } from 'lucide-react';
+import { motion } from 'framer-motion';
 
 ChartJS.register(ArcElement, Tooltip, Legend);
 
@@ -81,7 +82,6 @@ const Summary = () => {
         </div>
 
         <Card className="p-10 bg-[#1A1A1A] border-none shadow-2xl rounded-[40px] flex flex-col items-center relative overflow-hidden">
-          {/* Texture carta invecchiata */}
           <div className="absolute inset-0 opacity-5 pointer-events-none bg-[url('https://www.transparenttextures.com/patterns/paper-fibers.png')]" />
           <div className="absolute top-0 left-0 w-full h-1.5 bg-gradient-to-r from-transparent via-[#E67E22] to-transparent" />
           
