@@ -4,7 +4,7 @@ import { useBudget } from '../hooks/use-budget';
 import { Card } from '@/components/ui/card';
 import { Progress } from '@/components/ui/progress';
 import { Trophy, Star, Target, Zap, Crown, Medal, Lock } from 'lucide-react';
-import MascotBlob from '../components/budget/MascotBlob';
+import BoatScene from '../components/budget/BoatScene';
 
 interface TrophyItem {
   id: string;
@@ -20,8 +20,6 @@ interface TrophyItem {
 const Trophies = () => {
   const { data, stats } = useBudget();
 
-  // Logica per calcolare i progressi (simulata basata sui dati attuali)
-  // In un'app reale, questi dati verrebbero salvati giornalmente nel dailyHistory
   const totalSaved = stats?.currentSavings || 0;
   const expensesCount = data.expenses.length;
   const daysActive = data.dailyHistory.length || 1;
@@ -29,27 +27,27 @@ const Trophies = () => {
   const trophies: TrophyItem[] = [
     {
       id: 'saver_100',
-      title: 'Risparmiatore Zen',
-      description: 'Giorni con 100% di budget risparmiato',
+      title: 'Navigatore Esperto',
+      description: 'Giorni con mare calmo e budget intatto',
       icon: <Crown size={24} />,
       color: '#F59E0B',
       requirement: 5,
-      current: Math.min(5, Math.floor(daysActive / 3)), // Simulazione
+      current: Math.min(5, Math.floor(daysActive / 3)),
       unit: 'gg'
     },
     {
       id: 'saver_50',
-      title: 'Formichina',
+      title: 'Marinaio',
       description: 'Giorni con almeno il 50% risparmiato',
       icon: <Medal size={24} />,
       color: '#10B981',
       requirement: 10,
-      current: Math.min(10, Math.floor(daysActive / 1.5)), // Simulazione
+      current: Math.min(10, Math.floor(daysActive / 1.5)),
       unit: 'gg'
     },
     {
       id: 'total_savings',
-      title: 'Paperone',
+      title: 'Tesoro del Pirata',
       description: 'Risparmio totale accumulato',
       icon: <Trophy size={24} />,
       color: '#6C63FF',
@@ -59,7 +57,7 @@ const Trophies = () => {
     },
     {
       id: 'consistency',
-      title: 'Meticoloso',
+      title: 'Log di Bordo',
       description: 'Spese tracciate con precisione',
       icon: <Target size={24} />,
       color: '#3B82F6',
@@ -69,8 +67,8 @@ const Trophies = () => {
     },
     {
       id: 'impulse_control',
-      title: 'Mente Fredda',
-      description: 'Evita le spese d\'impulso',
+      title: 'Timone Fermo',
+      description: 'Evita le tempeste d\'impulso',
       icon: <Zap size={24} />,
       color: '#EC4899',
       requirement: 7,
@@ -83,15 +81,14 @@ const Trophies = () => {
     <AppLayout>
       <div className="space-y-8 pt-4">
         <div className="text-center space-y-4">
-          <div className="flex justify-center">
-            <div className="relative">
-              <MascotBlob 
-                type={data.settings.mascotId} 
+          <div className="flex justify-center px-4">
+            <div className="relative w-full max-w-[280px]">
+              <BoatScene 
                 state={totalSaved > 100 ? 'happy' : 'neutral'} 
-                size={100} 
+                size={140} 
               />
               {totalSaved > 500 && (
-                <div className="absolute -top-2 -right-2 bg-yellow-400 rounded-full p-1 shadow-lg animate-bounce">
+                <div className="absolute -top-2 -right-2 bg-yellow-400 rounded-full p-1 shadow-lg animate-bounce z-50">
                   <Crown size={20} className="text-white" />
                 </div>
               )}
@@ -99,7 +96,7 @@ const Trophies = () => {
           </div>
           <div>
             <h1 className="text-2xl font-bold text-[#1E1B3A] dark:text-[#F1F0FF]">Sala dei Trofei</h1>
-            <p className="text-sm text-slate-500 dark:text-slate-400">Ogni moneta risparmiata è un passo verso la gloria!</p>
+            <p className="text-sm text-slate-500 dark:text-slate-400">Ogni moneta risparmiata è un miglio verso la gloria!</p>
           </div>
         </div>
 
