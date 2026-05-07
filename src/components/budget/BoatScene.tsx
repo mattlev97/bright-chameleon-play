@@ -1,6 +1,6 @@
-import React, { useRef, useMemo } from 'react';
+import React, { useRef } from 'react';
 import { Canvas, useFrame } from '@react-three/fiber';
-import { Float, PerspectiveCamera, Environment, ContactShadows } from '@react-three/drei';
+import { Float, PerspectiveCamera, ContactShadows, Sky } from '@react-three/drei';
 import * as THREE from 'three';
 import { MascotState } from './MascotBlob';
 
@@ -10,114 +10,101 @@ interface BoatSceneProps {
   size?: number;
 }
 
-// Componente Barca 3D Low-Poly
 const FishingBoat = ({ state }: { state: MascotState }) => {
   const group = useRef<THREE.Group>(null);
 
-  // Animazione di galleggiamento basata sullo stato del budget
   const config = {
-    happy: { speed: 1, factor: 0.5 },
-    neutral: { speed: 2, factor: 1 },
-    sad: { speed: 4, factor: 2 },
-    concerned: { speed: 6, factor: 3 },
-    shocked: { speed: 10, factor: 5 }
-  }[state] || { speed: 2, factor: 1 };
+    happy: { speed: 1, factor: 0.3 },
+    neutral: { speed: 2, factor: 0.8 },
+    sad: { speed: 4, factor: 1.5 },
+    concerned: { speed: 6, factor: 2.5 },
+    shocked: { speed: 10, factor: 4 }
+  }[state] || { speed: 2, factor: 0.8 };
 
   useFrame((state) => {
     if (!group.current) return;
     const t = state.clock.getElapsedTime();
-    
-    // Movimento sussultorio (bobbing)
-    group.current.position.y = Math.sin(t * config.speed) * 0.1 * config.factor;
-    // Rollio e Beccheggio
-    group.current.rotation.x = Math.sin(t * config.speed * 0.8) * 0.05 * config.factor;
-    group.current.rotation.z = Math.cos(t * config.speed * 0.5) * 0.05 * config.factor;
+    group.current.position.y = Math.sin(t * config.speed) * 0.05 * config.factor;
+    group.current.rotation.x = Math.sin(t * config.speed * 0.8) * 0.03 * config.factor;
+    group.current.rotation.z = Math.cos(t * config.speed * 0.5) * 0.03 * config.factor;
   });
 
   return (
-    <group ref={group} rotation={[0, -Math.PI / 4, 0]}>
-      {/* Scafo (Hull) - Teal/Verde scuro */}
-      <mesh position={[0, 0.2, 0]}>
-        <boxGeometry args={[2.5, 0.6, 1]} />
-        <meshStandardMaterial color="#134e4a" />
+    <group ref={group} rotation={[0, -Math.PI / 4, 0]} scale={0.8}>
+      {/* Scafo Principale - Verde Petrolio Scuro */}
+      <mesh position={[0, 0.4, 0]} castShadow>
+        <boxGeometry args={[2.8, 0.7, 1.2]} />
+        <meshStandardMaterial color="#064e3b" roughness={0.3} />
       </mesh>
-      {/* Prua (Bow) */}
-      <mesh position={[1.5, 0.35, 0]} rotation={[0, 0, -Math.PI / 6]}>
-        <boxGeometry args={[1, 0.8, 1]} />
-        <meshStandardMaterial color="#134e4a" />
-      </mesh>
-      {/* Linea di galleggiamento rossa */}
-      <mesh position={[0, -0.1, 0]}>
-        <boxGeometry args={[2.6, 0.1, 1.05]} />
-        <meshStandardMaterial color="#8b1a1a" />
+      
+      {/* Prua Rialzata */}
+      <mesh position={[1.6, 0.6, 0]} rotation={[0, 0, -Math.PI / 8]} castShadow>
+        <boxGeometry args={[1.2, 1, 1.2]} />
+        <meshStandardMaterial color="#064e3b" roughness={0.3} />
       </mesh>
 
-      {/* Cabina (Cabin) - Legno/Arancio */}
-      <group position={[-0.2, 0.8, 0]}>
-        <mesh>
-          <boxGeometry args={[1, 0.8, 0.8]} />
-          <meshStandardMaterial color="#b45309" />
+      {/* Linea di galleggiamento Rossa (molto visibile) */}
+      <mesh position={[0, 0.1, 0]} castShadow>
+        <boxGeometry args={[3, 0.2, 1.25]} />
+        <meshStandardMaterial color="#991b1b" />
+      </mesh>
+
+      {/* Cabina Bianca */}
+      <group position={[-0.2, 1.1, 0]}>
+        <mesh castShadow>
+          <boxGeometry args={[1.2, 0.8, 0.9]} />
+          <meshStandardMaterial color="#f8fafc" />
         </mesh>
-        {/* Tetto */}
+        {/* Tetto Nero */}
         <mesh position={[0, 0.45, 0]}>
-          <boxGeometry args={[1.2, 0.1, 0.9]} />
-          <meshStandardMaterial color="#1a1a1a" />
+          <boxGeometry args={[1.4, 0.1, 1]} />
+          <meshStandardMaterial color="#1e293b" />
         </mesh>
-        {/* Finestre */}
-        <mesh position={[0.51, 0.1, 0]}>
-          <boxGeometry args={[0.01, 0.4, 0.6]} />
-          <meshStandardMaterial color="#1e293b" emissive="#f1c40f" emissiveIntensity={0.2} />
+        {/* Finestre Gialle (Illuminazione) */}
+        <mesh position={[0.61, 0.1, 0]}>
+          <boxGeometry args={[0.02, 0.4, 0.6]} />
+          <meshStandardMaterial color="#facc15" emissive="#facc15" emissiveIntensity={0.5} />
         </mesh>
       </group>
 
-      {/* Alberi (Masts) */}
-      <mesh position={[1, 1.2, 0]}>
-        <cylinderGeometry args={[0.05, 0.05, 2]} />
+      {/* Alberi Maestri */}
+      <mesh position={[1.2, 1.5, 0]} castShadow>
+        <cylinderGeometry args={[0.04, 0.06, 2.2]} />
         <meshStandardMaterial color="#451a03" />
       </mesh>
-      <mesh position={[-1, 1, 0]}>
-        <cylinderGeometry args={[0.04, 0.04, 1.5]} />
+      <mesh position={[-1.2, 1.2, 0]} castShadow>
+        <cylinderGeometry args={[0.03, 0.05, 1.6]} />
         <meshStandardMaterial color="#451a03" />
       </mesh>
 
-      {/* Parabordi (Gomme/Tires) */}
-      {[ -0.5, 0, 0.5 ].map((x, i) => (
-        <mesh key={i} position={[x, 0.2, 0.52]} rotation={[0, Math.PI / 2, 0]}>
-          <torusGeometry args={[0.15, 0.05, 8, 16]} />
-          <meshStandardMaterial color="#111" />
+      {/* Parabordi (Gomme nere sui lati) */}
+      {[-0.8, 0, 0.8].map((x, i) => (
+        <mesh key={i} position={[x, 0.4, 0.62]} rotation={[0, Math.PI / 2, 0]}>
+          <torusGeometry args={[0.15, 0.06, 12, 24]} />
+          <meshStandardMaterial color="#0f172a" />
         </mesh>
       ))}
-
-      {/* Argano/Gru posteriore */}
-      <group position={[-1.1, 0.5, 0]}>
-        <mesh rotation={[0, 0, Math.PI / 4]}>
-          <cylinderGeometry args={[0.03, 0.03, 1]} />
-          <meshStandardMaterial color="#333" />
-        </mesh>
-      </group>
     </group>
   );
 };
 
-// Mare animato
-const Sea = ({ state }: { state: MascotState }) => {
+const Sea = () => {
   const mesh = useRef<THREE.Mesh>(null);
-  
   useFrame((state) => {
-    if (!mesh.current) return;
-    // Semplice animazione della texture o della posizione per simulare onde
-    mesh.current.position.y = -0.5 + Math.sin(state.clock.getElapsedTime()) * 0.02;
+    if (mesh.current) {
+      mesh.current.position.y = -0.1 + Math.sin(state.clock.getElapsedTime() * 0.5) * 0.02;
+    }
   });
 
   return (
-    <mesh ref={mesh} rotation={[-Math.PI / 2, 0, 0]} position={[0, -0.5, 0]}>
-      <planeGeometry args={[20, 20]} />
+    <mesh ref={mesh} rotation={[-Math.PI / 2, 0, 0]} position={[0, 0, 0]} receiveShadow>
+      <circleGeometry args={[10, 32]} />
       <meshStandardMaterial 
-        color="#0f172a" 
+        color="#075985" 
         transparent 
-        opacity={0.8} 
+        opacity={0.9} 
         roughness={0.1}
-        metalness={0.2}
+        metalness={0.1}
       />
     </mesh>
   );
@@ -125,7 +112,7 @@ const Sea = ({ state }: { state: MascotState }) => {
 
 const BoatScene = ({ state, dailyBudget, size = 300 }: BoatSceneProps) => {
   return (
-    <div className="relative w-full rounded-[40px] overflow-hidden shadow-2xl bg-slate-900" style={{ height: size }}>
+    <div className="relative w-full rounded-[40px] overflow-hidden shadow-2xl bg-[#0c1a2b]" style={{ height: size }}>
       {/* UI Overlay */}
       <div className="absolute top-8 left-8 z-50 pointer-events-none">
         <p className="text-[10px] font-bold text-white/40 uppercase tracking-[0.3em]">Meteo</p>
@@ -140,26 +127,39 @@ const BoatScene = ({ state, dailyBudget, size = 300 }: BoatSceneProps) => {
       </div>
 
       <Canvas shadows dpr={[1, 2]}>
-        <PerspectiveCamera makeDefault position={[5, 3, 5]} fov={35} />
-        <ambientLight intensity={0.5} />
-        <pointLight position={[10, 10, 10]} intensity={1.5} castShadow />
-        <spotLight position={[-10, 10, 10]} angle={0.15} penumbra={1} intensity={1} />
+        <PerspectiveCamera makeDefault position={[4, 3, 4]} fov={40} />
         
-        <Float speed={2} rotationIntensity={0.5} floatIntensity={0.5}>
+        {/* Luci migliorate */}
+        <ambientLight intensity={0.8} />
+        <directionalLight 
+          position={[5, 10, 5]} 
+          intensity={1.5} 
+          castShadow 
+          shadow-mapSize={[1024, 1024]}
+        />
+        <pointLight position={[-5, 5, -5]} intensity={0.5} color="#38bdf8" />
+
+        <Sky sunPosition={[100, 20, 100]} turbidity={0.1} rayleigh={0.5} />
+
+        <Float speed={1.5} rotationIntensity={0.2} floatIntensity={0.5}>
           <FishingBoat state={state} />
         </Float>
 
-        <Sea state={state} />
+        <Sea />
         
-        <ContactShadows position={[0, -0.45, 0]} opacity={0.4} scale={10} blur={2} far={4.5} />
-        <Environment preset="city" />
+        <ContactShadows 
+          position={[0, -0.05, 0]} 
+          opacity={0.6} 
+          scale={10} 
+          blur={2.5} 
+          far={2} 
+        />
       </Canvas>
 
-      {/* Effetto Pioggia per stati negativi */}
+      {/* Effetto Pioggia/Tempesta */}
       {(state === 'sad' || state === 'concerned' || state === 'shocked') && (
-        <div className="absolute inset-0 pointer-events-none z-40">
-          <div className="absolute inset-0 bg-blue-900/10 backdrop-blur-[1px]" />
-          <div className="w-full h-full opacity-30 bg-[url('https://www.transparenttextures.com/patterns/stardust.png')] animate-pulse" />
+        <div className="absolute inset-0 pointer-events-none z-40 bg-blue-950/20 backdrop-blur-[1px]">
+          <div className="w-full h-full opacity-20 bg-[url('https://www.transparenttextures.com/patterns/stardust.png')] animate-pulse" />
         </div>
       )}
     </div>
