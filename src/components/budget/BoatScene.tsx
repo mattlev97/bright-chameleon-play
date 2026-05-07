@@ -1,5 +1,7 @@
-import React, { useRef, useEffect, useState } from 'react';
-import { motion, AnimatePresence } from 'framer-motion';
+import React, { useRef, useMemo } from 'react';
+import { Canvas, useFrame } from '@react-three/fiber';
+import { Float, PerspectiveCamera, Environment, ContactShadows } from '@react-three/drei';
+import * as THREE from 'three';
 import { MascotState } from './MascotBlob';
 
 interface BoatSceneProps {
@@ -8,84 +10,128 @@ interface BoatSceneProps {
   size?: number;
 }
 
-const BoatScene = ({ state, dailyBudget, size = 300 }: BoatSceneProps) => {
-  const canvasRef = useRef<HTMLCanvasElement>(null);
-  const [waveData, setWaveData] = useState({ y: 0, angle: 0 });
+// Componente Barca 3D Low-Poly
+const FishingBoat = ({ state }: { state: MascotState }) => {
+  const group = useRef<THREE.Group>(null);
 
+  // Animazione di galleggiamento basata sullo stato del budget
   const config = {
-    happy: { color: '#3E7B85', amplitude: 10, speed: 0.02, bg: 'bg-sky-400', label: 'Bonaccia' },
-    neutral: { color: '#2D5A63', amplitude: 20, speed: 0.04, bg: 'bg-blue-500', label: 'Vento Leggero' },
-    sad: { color: '#1A3A3A', amplitude: 40, speed: 0.08, bg: 'bg-slate-700', label: 'Mare Mosso' },
-    concerned: { color: '#0F2525', amplitude: 60, speed: 0.12, bg: 'bg-indigo-900', label: 'Tempesta' },
-    shocked: { color: '#051515', amplitude: 80, speed: 0.18, bg: 'bg-black', label: 'Uragano' }
-  }[state] || { color: '#2D5A63', amplitude: 20, speed: 0.04, bg: 'bg-blue-500', label: 'Vento Leggero' };
+    happy: { speed: 1, factor: 0.5 },
+    neutral: { speed: 2, factor: 1 },
+    sad: { speed: 4, factor: 2 },
+    concerned: { speed: 6, factor: 3 },
+    shocked: { speed: 10, factor: 5 }
+  }[state] || { speed: 2, factor: 1 };
 
-  useEffect(() => {
-    const canvas = canvasRef.current;
-    if (!canvas) return;
-    const ctx = canvas.getContext('2d');
-    if (!ctx) return;
-
-    let animationFrameId: number;
-    let offset = 0;
-
-    const render = () => {
-      const width = canvas.width = canvas.offsetWidth;
-      const height = canvas.height = canvas.offsetHeight;
-      
-      ctx.clearRect(0, 0, width, height);
-      
-      const drawWave = (layerOffset: number, opacity: number, ampMult: number) => {
-        ctx.beginPath();
-        ctx.moveTo(0, height);
-        
-        const centerX = width / 2;
-        let boatY = 0;
-        let boatSlope = 0;
-
-        for (let x = 0; x <= width; x++) {
-          const angle = (x * 0.01) + offset + layerOffset;
-          const y = Math.sin(angle) * config.amplitude * ampMult + (height * 0.75);
-          ctx.lineTo(x, y);
-
-          if (layerOffset === 0 && Math.abs(x - centerX) < 1) {
-            boatY = y;
-            boatSlope = Math.cos(angle) * config.amplitude * 0.01 * ampMult;
-          }
-        }
-
-        ctx.lineTo(width, height);
-        ctx.fillStyle = config.color;
-        ctx.globalAlpha = opacity;
-        ctx.fill();
-        
-        return { boatY, boatSlope };
-      };
-
-      drawWave(Math.PI, 0.3, 0.6);
-      const physics = drawWave(0, 1, 1);
-      drawWave(Math.PI / 2, 0.5, 1.2);
-
-      setWaveData({ 
-        y: physics.boatY, 
-        angle: Math.atan(physics.boatSlope) * (180 / Math.PI) 
-      });
-
-      offset += config.speed;
-      animationFrameId = requestAnimationFrame(render);
-    };
-
-    render();
-    return () => cancelAnimationFrame(animationFrameId);
-  }, [state, config]);
+  useFrame((state) => {
+    if (!group.current) return;
+    const t = state.clock.getElapsedTime();
+    
+    // Movimento sussultorio (bobbing)
+    group.current.position.y = Math.sin(t * config.speed) * 0.1 * config.factor;
+    // Rollio e Beccheggio
+    group.current.rotation.x = Math.sin(t * config.speed * 0.8) * 0.05 * config.factor;
+    group.current.rotation.z = Math.cos(t * config.speed * 0.5) * 0.05 * config.factor;
+  });
 
   return (
-    <div className={`relative w-full rounded-[40px] overflow-hidden shadow-2xl transition-colors duration-1000 ${config.bg}`} style={{ height: size }}>
-      <div className="absolute inset-0 opacity-40 bg-gradient-to-b from-white/20 to-transparent" />
-      
+    <group ref={group} rotation={[0, -Math.PI / 4, 0]}>
+      {/* Scafo (Hull) - Teal/Verde scuro */}
+      <mesh position={[0, 0.2, 0]}>
+        <boxGeometry args={[2.5, 0.6, 1]} />
+        <meshStandardMaterial color="#134e4a" />
+      </mesh>
+      {/* Prua (Bow) */}
+      <mesh position={[1.5, 0.35, 0]} rotation={[0, 0, -Math.PI / 6]}>
+        <boxGeometry args={[1, 0.8, 1]} />
+        <meshStandardMaterial color="#134e4a" />
+      </mesh>
+      {/* Linea di galleggiamento rossa */}
+      <mesh position={[0, -0.1, 0]}>
+        <boxGeometry args={[2.6, 0.1, 1.05]} />
+        <meshStandardMaterial color="#8b1a1a" />
+      </mesh>
+
+      {/* Cabina (Cabin) - Legno/Arancio */}
+      <group position={[-0.2, 0.8, 0]}>
+        <mesh>
+          <boxGeometry args={[1, 0.8, 0.8]} />
+          <meshStandardMaterial color="#b45309" />
+        </mesh>
+        {/* Tetto */}
+        <mesh position={[0, 0.45, 0]}>
+          <boxGeometry args={[1.2, 0.1, 0.9]} />
+          <meshStandardMaterial color="#1a1a1a" />
+        </mesh>
+        {/* Finestre */}
+        <mesh position={[0.51, 0.1, 0]}>
+          <boxGeometry args={[0.01, 0.4, 0.6]} />
+          <meshStandardMaterial color="#1e293b" emissive="#f1c40f" emissiveIntensity={0.2} />
+        </mesh>
+      </group>
+
+      {/* Alberi (Masts) */}
+      <mesh position={[1, 1.2, 0]}>
+        <cylinderGeometry args={[0.05, 0.05, 2]} />
+        <meshStandardMaterial color="#451a03" />
+      </mesh>
+      <mesh position={[-1, 1, 0]}>
+        <cylinderGeometry args={[0.04, 0.04, 1.5]} />
+        <meshStandardMaterial color="#451a03" />
+      </mesh>
+
+      {/* Parabordi (Gomme/Tires) */}
+      {[ -0.5, 0, 0.5 ].map((x, i) => (
+        <mesh key={i} position={[x, 0.2, 0.52]} rotation={[0, Math.PI / 2, 0]}>
+          <torusGeometry args={[0.15, 0.05, 8, 16]} />
+          <meshStandardMaterial color="#111" />
+        </mesh>
+      ))}
+
+      {/* Argano/Gru posteriore */}
+      <group position={[-1.1, 0.5, 0]}>
+        <mesh rotation={[0, 0, Math.PI / 4]}>
+          <cylinderGeometry args={[0.03, 0.03, 1]} />
+          <meshStandardMaterial color="#333" />
+        </mesh>
+      </group>
+    </group>
+  );
+};
+
+// Mare animato
+const Sea = ({ state }: { state: MascotState }) => {
+  const mesh = useRef<THREE.Mesh>(null);
+  
+  useFrame((state) => {
+    if (!mesh.current) return;
+    // Semplice animazione della texture o della posizione per simulare onde
+    mesh.current.position.y = -0.5 + Math.sin(state.clock.getElapsedTime()) * 0.02;
+  });
+
+  return (
+    <mesh ref={mesh} rotation={[-Math.PI / 2, 0, 0]} position={[0, -0.5, 0]}>
+      <planeGeometry args={[20, 20]} />
+      <meshStandardMaterial 
+        color="#0f172a" 
+        transparent 
+        opacity={0.8} 
+        roughness={0.1}
+        metalness={0.2}
+      />
+    </mesh>
+  );
+};
+
+const BoatScene = ({ state, dailyBudget, size = 300 }: BoatSceneProps) => {
+  return (
+    <div className="relative w-full rounded-[40px] overflow-hidden shadow-2xl bg-slate-900" style={{ height: size }}>
+      {/* UI Overlay */}
       <div className="absolute top-8 left-8 z-50 pointer-events-none">
         <p className="text-[10px] font-bold text-white/40 uppercase tracking-[0.3em]">Meteo</p>
-        <h2 className="text-2xl font-bold text-white tracking-tight drop-shadow-lg">{config.label}</h2>
+        <h2 className="text-2xl font-bold text-white tracking-tight drop-shadow-lg">
+          {state === 'happy' ? 'Bonaccia' : state === 'shocked' ? 'Uragano' : 'Navigazione'}
+        </h2>
       </div>
 
       <div className="absolute top-8 right-8 z-50 text-right pointer-events-none">
@@ -93,99 +139,29 @@ const BoatScene = ({ state, dailyBudget, size = 300 }: BoatSceneProps) => {
         <h2 className="text-3xl font-bold text-white tracking-tighter drop-shadow-lg">€ {dailyBudget.toFixed(0)}</h2>
       </div>
 
-      <motion.div
-        style={{ 
-          left: '50%',
-          top: waveData.y,
-          x: '-50%',
-          y: '-90%',
-          rotate: waveData.angle
-        }}
-        className="absolute w-64 h-64 z-20 pointer-events-none"
-      >
-        <svg viewBox="0 0 200 200" className="w-full h-full drop-shadow-2xl">
-          <defs>
-            <linearGradient id="hullMain" x1="0%" y1="0%" x2="0%" y2="100%">
-              <stop offset="0%" stopColor="#2A2A2A" />
-              <stop offset="100%" stopColor="#121212" />
-            </linearGradient>
-            <linearGradient id="hullBottom" x1="0%" y1="0%" x2="0%" y2="100%">
-              <stop offset="0%" stopColor="#8B2635" />
-              <stop offset="100%" stopColor="#5A1822" />
-            </linearGradient>
-            <linearGradient id="cabinWhite" x1="0%" y1="0%" x2="0%" y2="100%">
-              <stop offset="0%" stopColor="#F4F4F4" />
-              <stop offset="100%" stopColor="#D1D1D1" />
-            </linearGradient>
-          </defs>
+      <Canvas shadows dpr={[1, 2]}>
+        <PerspectiveCamera makeDefault position={[5, 3, 5]} fov={35} />
+        <ambientLight intensity={0.5} />
+        <pointLight position={[10, 10, 10]} intensity={1.5} castShadow />
+        <spotLight position={[-10, 10, 10]} angle={0.15} penumbra={1} intensity={1} />
+        
+        <Float speed={2} rotationIntensity={0.5} floatIntensity={0.5}>
+          <FishingBoat state={state} />
+        </Float>
 
-          {/* Scafo (Hull) - Silhouette Trawler */}
-          {/* Parte Rossa (Bottom) */}
-          <path 
-            d="M25,135 Q25,155 100,155 Q175,155 175,135 L170,125 L30,125 Z" 
-            fill="url(#hullBottom)" 
-          />
-          {/* Parte Nera (Main) */}
-          <path 
-            d="M20,110 C20,110 25,135 100,135 C175,135 180,110 180,110 L170,100 L30,100 Z" 
-            fill="url(#hullMain)" 
-          />
-          
-          {/* Cabina (Cabin) */}
-          <path 
-            d="M70,100 L70,70 Q70,65 75,65 L125,65 Q130,65 130,70 L130,100 Z" 
-            fill="url(#cabinWhite)" 
-          />
-          {/* Tetto Cabina */}
-          <path d="M65,65 L135,65 L130,60 L70,60 Z" fill="#333" />
-          
-          {/* Finestre */}
-          <rect x="78" y="72" width="18" height="15" fill="#1A2A2D" rx="1" />
-          <rect x="104" y="72" width="18" height="15" fill="#1A2A2D" rx="1" />
-          {/* Luce interna */}
-          <rect x="80" y="74" width="14" height="11" fill="#F1C40F" opacity="0.3" className="animate-pulse" />
+        <Sea state={state} />
+        
+        <ContactShadows position={[0, -0.45, 0]} opacity={0.4} scale={10} blur={2} far={4.5} />
+        <Environment preset="city" />
+      </Canvas>
 
-          {/* Albero Maestro (Mast) */}
-          <rect x="98" y="25" width="4" height="40" fill="#222" />
-          <line x1="100" y1="35" x2="150" y2="100" stroke="#111" strokeWidth="0.5" opacity="0.6" />
-          <line x1="100" y1="45" x2="50" y2="100" stroke="#111" strokeWidth="0.5" opacity="0.6" />
-          
-          {/* Dettagli (Antenne/Luci) */}
-          <circle cx="100" cy="25" r="1.5" fill="#FF0000" className="animate-pulse" />
-          <rect x="135" y="90" width="10" height="10" fill="#8B2635" rx="5" /> {/* Salvagente */}
-          <circle cx="140" cy="95" r="3" fill="#F4F4F4" />
-
-          {/* Luci di navigazione sullo scafo */}
-          <circle cx="35" cy="105" r="2" fill="#FF0000" />
-          <circle cx="165" cy="105" r="2" fill="#00FF00" />
-        </svg>
-
-        <div className="absolute bottom-6 left-1/2 -translate-x-1/2 w-40 h-6 bg-white/10 blur-lg rounded-full animate-pulse" />
-      </motion.div>
-
-      <canvas ref={canvasRef} className="absolute inset-0 w-full h-full z-10" />
-
-      <AnimatePresence>
-        {(state === 'sad' || state === 'concerned' || state === 'shocked') && (
-          <motion.div 
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            exit={{ opacity: 0 }}
-            className="absolute inset-0 z-30 pointer-events-none"
-          >
-            <div className="absolute inset-0 bg-slate-900/20 backdrop-blur-[1px]" />
-            {[...Array(20)].map((_, i) => (
-              <motion.div
-                key={i}
-                initial={{ y: -20, x: Math.random() * 100 + '%' }}
-                animate={{ y: size + 20 }}
-                transition={{ duration: 0.4, repeat: Infinity, delay: Math.random() }}
-                className="absolute w-[1px] h-10 bg-white/20 rotate-12"
-              />
-            ))}
-          </motion.div>
-        )}
-      </AnimatePresence>
+      {/* Effetto Pioggia per stati negativi */}
+      {(state === 'sad' || state === 'concerned' || state === 'shocked') && (
+        <div className="absolute inset-0 pointer-events-none z-40">
+          <div className="absolute inset-0 bg-blue-900/10 backdrop-blur-[1px]" />
+          <div className="w-full h-full opacity-30 bg-[url('https://www.transparenttextures.com/patterns/stardust.png')] animate-pulse" />
+        </div>
+      )}
     </div>
   );
 };
