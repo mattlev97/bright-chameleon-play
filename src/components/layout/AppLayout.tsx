@@ -1,6 +1,6 @@
 import React from 'react';
 import { NavLink } from 'react-router-dom';
-import { Home, Plus, Settings as SettingsIcon, PieChart, Trophy } from 'lucide-react';
+import { Home, Plus, Settings as SettingsIcon, PieChart, Trophy, Anchor } from 'lucide-react';
 import { cn } from '@/lib/utils';
 
 const AppLayout = ({ children }: { children: React.ReactNode }) => {
@@ -10,18 +10,18 @@ const AppLayout = ({ children }: { children: React.ReactNode }) => {
         {children}
       </main>
       
-      <nav className="fixed bottom-0 left-1/2 -translate-x-1/2 w-full max-w-md bg-white/90 dark:bg-[#1A1830]/90 backdrop-blur-xl border-t border-slate-200/50 dark:border-slate-800/50 px-2 py-4 flex justify-around items-center z-50">
+      <nav className="fixed bottom-0 left-1/2 -translate-x-1/2 w-full max-w-md bg-white/95 dark:bg-[#122326]/95 backdrop-blur-xl border-t-2 border-[#3E7B85]/10 px-2 py-4 flex justify-around items-center z-50">
         <NavLink 
           to="/" 
           className={({ isActive }) => cn(
             "flex flex-col items-center gap-1 transition-all duration-300 flex-1",
-            isActive ? "text-[#6C63FF]" : "text-[#9CA3AF] hover:text-slate-600"
+            isActive ? "text-[#3E7B85]" : "text-slate-400 hover:text-[#3E7B85]"
           )}
         >
           {({ isActive }) => (
             <>
-              <Home size={20} strokeWidth={isActive ? 2.5 : 2} />
-              <span className="text-[10px] font-medium">Home</span>
+              <Anchor size={20} strokeWidth={isActive ? 2.5 : 2} />
+              <span className="text-[10px] font-bold uppercase tracking-tighter">Porto</span>
             </>
           )}
         </NavLink>
@@ -30,13 +30,13 @@ const AppLayout = ({ children }: { children: React.ReactNode }) => {
           to="/summary" 
           className={({ isActive }) => cn(
             "flex flex-col items-center gap-1 transition-all duration-300 flex-1",
-            isActive ? "text-[#6C63FF]" : "text-[#9CA3AF] hover:text-slate-600"
+            isActive ? "text-[#3E7B85]" : "text-slate-400 hover:text-[#3E7B85]"
           )}
         >
           {({ isActive }) => (
             <>
               <PieChart size={20} strokeWidth={isActive ? 2.5 : 2} />
-              <span className="text-[10px] font-medium">Analisi</span>
+              <span className="text-[10px] font-bold uppercase tracking-tighter">Mappa</span>
             </>
           )}
         </NavLink>
@@ -44,9 +44,9 @@ const AppLayout = ({ children }: { children: React.ReactNode }) => {
         <div className="flex-1 flex justify-center">
           <NavLink 
             to="/add" 
-            className="flex items-center justify-center -mt-14 w-14 h-14 rounded-full text-white shadow-xl transition-all duration-300 active:scale-90 bg-gradient-to-br from-[#6C63FF] to-[#A78BFA] shadow-[#6C63FF]/40"
+            className="flex items-center justify-center -mt-14 w-14 h-14 rounded-2xl text-white shadow-2xl transition-all duration-300 active:scale-90 bg-[#E67E22] shadow-[#E67E22]/40 border-4 border-white dark:border-[#122326]"
           >
-            <Plus size={32} strokeWidth={2.5} />
+            <Plus size={32} strokeWidth={3} />
           </NavLink>
         </div>
 
@@ -54,13 +54,13 @@ const AppLayout = ({ children }: { children: React.ReactNode }) => {
           to="/trophies" 
           className={({ isActive }) => cn(
             "flex flex-col items-center gap-1 transition-all duration-300 flex-1",
-            isActive ? "text-[#6C63FF]" : "text-[#9CA3AF] hover:text-slate-600"
+            isActive ? "text-[#3E7B85]" : "text-slate-400 hover:text-[#3E7B85]"
           )}
         >
           {({ isActive }) => (
             <>
               <Trophy size={20} strokeWidth={isActive ? 2.5 : 2} />
-              <span className="text-[10px] font-medium">Trofei</span>
+              <span className="text-[10px] font-bold uppercase tracking-tighter">Tesori</span>
             </>
           )}
         </NavLink>
@@ -69,13 +69,13 @@ const AppLayout = ({ children }: { children: React.ReactNode }) => {
           to="/settings" 
           className={({ isActive }) => cn(
             "flex flex-col items-center gap-1 transition-all duration-300 flex-1",
-            isActive ? "text-[#6C63FF]" : "text-[#9CA3AF] hover:text-slate-600"
+            isActive ? "text-[#3E7B85]" : "text-slate-400 hover:text-[#3E7B85]"
           )}
         >
           {({ isActive }) => (
             <>
               <SettingsIcon size={20} strokeWidth={isActive ? 2.5 : 2} />
-              <span className="text-[10px] font-medium">Menu</span>
+              <span className="text-[10px] font-bold uppercase tracking-tighter">Log</span>
             </>
           )}
         </NavLink>

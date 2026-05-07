@@ -1,144 +1,101 @@
+"use client";
+
 import React, { useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { Wallet, Check, Target } from 'lucide-react';
-import MascotBlob from './MascotBlob';
-import { MascotId } from '../../types/budget';
+import { Anchor, Ship, Compass } from 'lucide-react';
 
 interface OnboardingProps {
-  onComplete: (amount: number, date: string, mascotId: MascotId, savingsGoal: number) => void;
+  onComplete: (amount: number, date: string, mascotId: any, savingsGoal: number) => void;
 }
 
 const Onboarding = ({ onComplete }: OnboardingProps) => {
-  const [step, setStep] = useState(1);
   const [amount, setAmount] = useState('');
   const [savingsGoal, setSavingsGoal] = useState('');
   const [date, setDate] = useState(new Date().toISOString().split('T')[0]);
-  const [selectedMascot, setSelectedMascot] = useState<MascotId>('classic');
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    if (step === 1) {
-      setStep(2);
-    } else {
-      if (amount && date) {
-        onComplete(
-          parseFloat(amount), 
-          date, 
-          selectedMascot, 
-          savingsGoal ? parseFloat(savingsGoal) : 0
-        );
-      }
+    if (amount && date) {
+      onComplete(
+        parseFloat(amount), 
+        date, 
+        'classic', // Default mascot ID (non più selezionabile)
+        savingsGoal ? parseFloat(savingsGoal) : 0
+      );
     }
   };
 
   return (
-    <div className="min-h-screen flex flex-col bg-[#F4F6FB] dark:bg-[#0F0E1A]">
-      <div className="h-[30vh] bg-gradient-to-br from-[#6C63FF] to-[#A78BFA] flex flex-col items-center justify-center text-white p-6 relative overflow-hidden">
-        <div className="absolute -top-20 -left-20 w-64 h-64 bg-white/10 rounded-full blur-3xl" />
-        <h1 className="text-3xl font-bold tracking-tight">DailyBudget</h1>
-        <p className="text-white/80 font-medium mt-1">Configura il tuo mese</p>
+    <div className="min-h-screen flex flex-col bg-[#F4EBD0] dark:bg-[#0A1416]">
+      <div className="h-[35vh] bg-[#3E7B85] flex flex-col items-center justify-center text-[#F4EBD0] p-6 relative overflow-hidden">
+        <div className="absolute inset-0 opacity-10">
+          <div className="absolute top-10 left-10 rotate-12"><Anchor size={120} /></div>
+          <div className="absolute bottom-10 right-10 -rotate-12"><Ship size={120} /></div>
+        </div>
+        <div className="relative z-10 text-center space-y-2">
+          <h1 className="text-4xl font-bold tracking-tighter uppercase">DailyBudget</h1>
+          <p className="text-[#F4EBD0]/70 font-bold text-xs tracking-[0.2em] uppercase">Log di Bordo Finanziario</p>
+        </div>
       </div>
 
-      <div className="flex-1 bg-white dark:bg-[#1A1830] rounded-t-[32px] -mt-10 p-8 space-y-8 shadow-[0_-8px_32px_rgba(0,0,0,0.05)] relative z-10">
-        {step === 1 ? (
-          <>
+      <div className="flex-1 bg-white dark:bg-[#122326] rounded-t-[40px] -mt-12 p-8 space-y-8 shadow-2xl relative z-20 border-t-4 border-[#E67E22]">
+        <div className="space-y-2">
+          <h2 className="text-2xl font-bold text-[#1A2A2D] dark:text-[#F4EBD0]">Configura la Rotta</h2>
+          <p className="text-slate-500 dark:text-slate-400 text-sm leading-relaxed">
+            Inserisci le tue risorse mensili per iniziare la navigazione.
+          </p>
+        </div>
+
+        <form onSubmit={handleSubmit} className="space-y-6">
+          <div className="space-y-5">
             <div className="space-y-2">
-              <h2 className="text-2xl font-bold text-[#1E1B3A] dark:text-[#F1F0FF]">Dati Finanziari</h2>
-              <p className="text-[#6B7280] dark:text-[#9CA3AF] text-sm leading-relaxed">
-                Inserisci lo stipendio e quanto vorresti mettere da parte questo mese.
-              </p>
-            </div>
-
-            <form onSubmit={handleSubmit} className="space-y-6">
-              <div className="space-y-4">
-                <div className="space-y-2">
-                  <Label className="text-[11px] font-bold uppercase tracking-wider text-[#6B7280]">Importo Stipendio</Label>
-                  <div className="relative">
-                    <span className="absolute left-4 top-1/2 -translate-y-1/2 text-[#1E1B3A] dark:text-[#F1F0FF] font-bold">€</span>
-                    <Input 
-                      type="number" 
-                      placeholder="1600" 
-                      className="pl-10 h-13 rounded-xl border-[1.5px] border-slate-200 dark:border-slate-800 bg-transparent font-bold"
-                      value={amount}
-                      onChange={(e) => setAmount(e.target.value)}
-                      required
-                    />
-                  </div>
-                </div>
-
-                <div className="space-y-2">
-                  <Label className="text-[11px] font-bold uppercase tracking-wider text-[#6B7280]">Obiettivo Risparmio</Label>
-                  <div className="relative">
-                    <span className="absolute left-4 top-1/2 -translate-y-1/2 text-[#6C63FF] font-bold">€</span>
-                    <Input 
-                      type="number" 
-                      placeholder="200" 
-                      className="pl-10 h-13 rounded-xl border-[1.5px] border-[#6C63FF]/30 bg-[#F5F3FF] dark:bg-[#6C63FF]/5 font-bold text-[#6C63FF]"
-                      value={savingsGoal}
-                      onChange={(e) => setSavingsGoal(e.target.value)}
-                    />
-                  </div>
-                </div>
-
-                <div className="space-y-2">
-                  <Label className="text-[11px] font-bold uppercase tracking-wider text-[#6B7280]">Data di ricezione</Label>
-                  <Input 
-                    type="date" 
-                    className="h-13 rounded-xl border-[1.5px] border-slate-200 dark:border-slate-800 bg-transparent"
-                    value={date}
-                    onChange={(e) => setDate(e.target.value)}
-                    required
-                  />
-                </div>
+              <Label className="text-[10px] font-bold uppercase tracking-widest text-[#3E7B85]">Carico Mensile (Stipendio)</Label>
+              <div className="relative">
+                <span className="absolute left-4 top-1/2 -translate-y-1/2 text-[#1A2A2D] dark:text-[#F4EBD0] font-bold">€</span>
+                <Input 
+                  type="number" 
+                  placeholder="1600" 
+                  className="pl-10 h-14 rounded-xl border-2 border-slate-100 dark:border-slate-800 bg-transparent font-bold text-lg focus:border-[#3E7B85]"
+                  value={amount}
+                  onChange={(e) => setAmount(e.target.value)}
+                  required
+                />
               </div>
-              <Button type="submit" className="w-full h-[52px] bg-[#6C63FF] text-white rounded-xl font-bold shadow-lg shadow-[#6C63FF]/20">
-                Continua
-              </Button>
-            </form>
-          </>
-        ) : (
-          <>
+            </div>
+
             <div className="space-y-2">
-              <h2 className="text-2xl font-bold text-[#1E1B3A] dark:text-[#F1F0FF]">Scegli il tuo Bibi</h2>
-              <p className="text-[#6B7280] dark:text-[#9CA3AF] text-sm leading-relaxed">
-                Questa mascotte rifletterà la tua salute finanziaria.
-              </p>
+              <Label className="text-[10px] font-bold uppercase tracking-widest text-[#E67E22]">Riserva di Sicurezza (Risparmio)</Label>
+              <div className="relative">
+                <span className="absolute left-4 top-1/2 -translate-y-1/2 text-[#E67E22] font-bold">€</span>
+                <Input 
+                  type="number" 
+                  placeholder="200" 
+                  className="pl-10 h-14 rounded-xl border-2 border-[#E67E22]/20 bg-[#E67E22]/5 dark:bg-[#E67E22]/10 font-bold text-lg text-[#E67E22] focus:border-[#E67E22]"
+                  value={savingsGoal}
+                  onChange={(e) => setSavingsGoal(e.target.value)}
+                />
+              </div>
             </div>
 
-            <div className="grid grid-cols-3 gap-4 py-4">
-              {(['classic', 'tall', 'wide'] as MascotId[]).map((id) => (
-                <button
-                  key={id}
-                  onClick={() => setSelectedMascot(id)}
-                  className={`relative flex flex-col items-center p-4 rounded-2xl border-2 transition-all ${
-                    selectedMascot === id 
-                      ? 'border-[#6C63FF] bg-[#F5F3FF] dark:bg-[#6C63FF]/10' 
-                      : 'border-transparent bg-slate-50 dark:bg-slate-900/50'
-                  }`}
-                >
-                  {selectedMascot === id && (
-                    <div className="absolute top-2 right-2 bg-[#6C63FF] text-white rounded-full p-0.5">
-                      <Check size={10} />
-                    </div>
-                  )}
-                  <MascotBlob type={id} state="neutral" size={60} />
-                  <span className="text-[10px] font-bold mt-2 uppercase tracking-tighter text-slate-500">
-                    {id === 'classic' ? 'Original' : id === 'tall' ? 'Slim' : 'Chubby'}
-                  </span>
-                </button>
-              ))}
+            <div className="space-y-2">
+              <Label className="text-[10px] font-bold uppercase tracking-widest text-[#3E7B85]">Data di Rifornimento</Label>
+              <Input 
+                type="date" 
+                className="h-14 rounded-xl border-2 border-slate-100 dark:border-slate-800 bg-transparent font-medium"
+                value={date}
+                onChange={(e) => setDate(e.target.value)}
+                required
+              />
             </div>
+          </div>
 
-            <Button 
-              onClick={handleSubmit}
-              className="w-full h-[52px] bg-gradient-to-r from-[#6C63FF] to-[#A78BFA] text-white rounded-xl font-bold shadow-lg shadow-[#6C63FF]/20"
-            >
-              Inizia l'avventura
-            </Button>
-          </>
-        )}
+          <Button type="submit" className="w-full h-14 bg-[#3E7B85] hover:bg-[#2D5A63] text-white rounded-xl font-bold text-lg shadow-xl shadow-[#3E7B85]/20 flex gap-3">
+            <Compass size={20} />
+            Prendi il Timone
+          </Button>
+        </form>
       </div>
     </div>
   );

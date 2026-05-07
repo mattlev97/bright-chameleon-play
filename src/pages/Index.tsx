@@ -9,8 +9,8 @@ import { Card } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { 
-  Calendar, Trash2, Wallet, TrendingUp, Target, 
-  Repeat, AlertCircle, CheckCircle2, Copy, Edit3, Info, ChevronRight
+  Calendar, Trash2, Anchor, TrendingUp, Target, 
+  Repeat, AlertCircle, CheckCircle2, Copy, Edit3, Info, ChevronRight, Ship
 } from 'lucide-react';
 import { parseISO, format } from 'date-fns';
 import { Line } from 'react-chartjs-2';
@@ -46,19 +46,19 @@ import { showSuccess } from '../utils/toast';
 ChartJS.register(CategoryScale, LinearScale, PointElement, LineElement, Title, ChartTooltip, Filler, Legend);
 
 const CATEGORIES: Record<string, { icon: string; color: string }> = {
-  casa: { icon: '🏠', color: '#6C63FF' },
-  cibo: { icon: '🍕', color: '#F59E0B' },
-  trasporti: { icon: '🚗', color: '#3B82F6' },
-  svago: { icon: '🎬', color: '#EC4899' },
-  salute: { icon: '🏥', color: '#10B981' },
-  shopping: { icon: '🛍️', color: '#F97316' },
-  abbonamenti: { icon: '📱', color: '#8B5CF6' },
-  regali: { icon: '🎁', color: '#F472B6' },
-  animali: { icon: '🐾', color: '#10B981' },
-  istruzione: { icon: '📚', color: '#3B82F6' },
-  viaggi: { icon: '✈️', color: '#06B6D4' },
-  investimenti: { icon: '📈', color: '#22C55E' },
-  altro: { icon: '💰', color: '#9CA3AF' },
+  casa: { icon: '🏠', color: '#3E7B85' },
+  cibo: { icon: '🍕', color: '#E67E22' },
+  trasporti: { icon: '🚗', color: '#2980B9' },
+  svago: { icon: '🎬', color: '#C0392B' },
+  salute: { icon: '🏥', color: '#27AE60' },
+  shopping: { icon: '🛍️', color: '#D35400' },
+  abbonamenti: { icon: '📱', color: '#8E44AD' },
+  regali: { icon: '🎁', color: '#E84393' },
+  animali: { icon: '🐾', color: '#16A085' },
+  istruzione: { icon: '📚', color: '#2C3E50' },
+  viaggi: { icon: '✈️', color: '#3498DB' },
+  investimenti: { icon: '📈', color: '#2ECC71' },
+  altro: { icon: '💰', color: '#7F8C8D' },
 };
 
 const Index = () => {
@@ -100,11 +100,11 @@ const Index = () => {
       fill: true,
       label: 'Budget Reale',
       data: trendValues,
-      borderColor: '#6C63FF',
-      backgroundColor: 'rgba(108, 99, 255, 0.1)',
+      borderColor: '#3E7B85',
+      backgroundColor: 'rgba(62, 123, 133, 0.1)',
       tension: 0.4,
       pointRadius: 4,
-      pointBackgroundColor: '#6C63FF',
+      pointBackgroundColor: '#3E7B85',
     }],
   };
 
@@ -142,11 +142,11 @@ const Index = () => {
   return (
     <AppLayout>
       <AlertDialog open={!!expenseToDelete} onOpenChange={() => setExpenseToDelete(null)}>
-        <AlertDialogContent className="rounded-[24px] max-w-[90%] mx-auto">
+        <AlertDialogContent className="rounded-[24px] max-w-[90%] mx-auto border-2 border-[#8B2635]/20">
           <AlertDialogHeader>
-            <AlertDialogTitle>Sei sicuro?</AlertDialogTitle>
+            <AlertDialogTitle>Abbandonare il carico?</AlertDialogTitle>
             <AlertDialogDescription>
-              Questa azione eliminerà definitivamente la spesa selezionata.
+              Questa spesa verrà rimossa definitivamente dal log di bordo.
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter className="flex-row gap-3 sm:justify-end">
@@ -155,9 +155,9 @@ const Index = () => {
               onClick={() => {
                 if (expenseToDelete) deleteExpense(expenseToDelete);
                 setExpenseToDelete(null);
-                showSuccess("Spesa eliminata");
+                showSuccess("Carico rimosso");
               }}
-              className="flex-1 rounded-xl bg-red-500 hover:bg-red-600"
+              className="flex-1 rounded-xl bg-[#8B2635] hover:bg-[#6B1D29]"
             >
               Elimina
             </AlertDialogAction>
@@ -166,14 +166,14 @@ const Index = () => {
       </AlertDialog>
 
       <Dialog open={!!longPressedExpense} onOpenChange={() => setLongPressedExpense(null)}>
-        <DialogContent className="rounded-[28px] max-w-[85%] mx-auto p-6">
+        <DialogContent className="rounded-[28px] max-w-[85%] mx-auto p-6 border-2 border-[#3E7B85]/20">
           <DialogHeader>
-            <DialogTitle className="text-center text-lg">Opzioni Spesa</DialogTitle>
+            <DialogTitle className="text-center text-lg font-bold uppercase tracking-widest">Opzioni Carico</DialogTitle>
           </DialogHeader>
           <div className="grid grid-cols-1 gap-3 pt-4">
             <Button 
               onClick={handleDuplicate}
-              className="h-14 rounded-2xl bg-[#F5F3FF] text-[#6C63FF] hover:bg-[#EDE9FE] border-none font-bold flex items-center justify-start gap-4 px-6"
+              className="h-14 rounded-xl bg-[#F4EBD0] text-[#3E7B85] hover:bg-[#EADDB8] border-none font-bold flex items-center justify-start gap-4 px-6"
             >
               <Copy size={20} />
               Duplica spesa
@@ -183,7 +183,7 @@ const Index = () => {
                 navigate(`/add?edit=${longPressedExpense.id}`);
                 setLongPressedExpense(null);
               }}
-              className="h-14 rounded-2xl bg-slate-50 text-slate-700 hover:bg-slate-100 border-none font-bold flex items-center justify-start gap-4 px-6"
+              className="h-14 rounded-xl bg-slate-50 text-slate-700 hover:bg-slate-100 border-none font-bold flex items-center justify-start gap-4 px-6"
             >
               <Edit3 size={20} />
               Modifica dettagli
@@ -193,38 +193,38 @@ const Index = () => {
       </Dialog>
 
       <Dialog open={showBreakdown} onOpenChange={setShowBreakdown}>
-        <DialogContent className="rounded-[32px] max-w-[90%] mx-auto p-8">
+        <DialogContent className="rounded-[32px] max-w-[90%] mx-auto p-8 border-2 border-[#3E7B85]/20">
           <DialogHeader>
-            <DialogTitle className="text-xl font-bold text-[#1E1B3A] dark:text-[#F1F0FF]">Come calcoliamo il budget?</DialogTitle>
+            <DialogTitle className="text-xl font-bold text-[#1A2A2D] dark:text-[#F4EBD0] uppercase tracking-tighter">Log di Navigazione</DialogTitle>
           </DialogHeader>
           <div className="space-y-6 pt-4">
             <div className="space-y-4">
               <div className="flex justify-between items-center">
-                <span className="text-slate-500 font-medium">Stipendio Mensile</span>
-                <span className="font-bold text-green-500">+{formatCurrency(data.salary.amount)}</span>
+                <span className="text-slate-500 font-bold text-xs uppercase tracking-widest">Rifornimento</span>
+                <span className="font-bold text-[#3E7B85]">+{formatCurrency(data.salary.amount)}</span>
               </div>
               <div className="flex justify-between items-center">
-                <span className="text-slate-500 font-medium">Spese Pianificate</span>
-                <span className="font-bold text-red-400">-{formatCurrency(stats.totalPlannedExpenses)}</span>
+                <span className="text-slate-500 font-bold text-xs uppercase tracking-widest">Carico Spese</span>
+                <span className="font-bold text-[#8B2635]">-{formatCurrency(stats.totalPlannedExpenses)}</span>
               </div>
               <div className="flex justify-between items-center">
-                <span className="text-slate-500 font-medium">Obiettivo Risparmio</span>
-                <span className="font-bold text-[#6C63FF]">-{formatCurrency(stats.savingsGoal)}</span>
+                <span className="text-slate-500 font-bold text-xs uppercase tracking-widest">Riserva Risparmio</span>
+                <span className="font-bold text-[#E67E22]">-{formatCurrency(stats.savingsGoal)}</span>
               </div>
               <div className="h-px bg-slate-100 dark:bg-slate-800 w-full" />
               <div className="flex justify-between items-center">
-                <span className="text-[#1E1B3A] dark:text-[#F1F0FF] font-bold">Disponibile Totale</span>
+                <span className="text-[#1A2A2D] dark:text-[#F4EBD0] font-bold">Disponibile Netto</span>
                 <span className="font-bold text-lg">{formatCurrency(stats.totalAvailableForFreeSpending)}</span>
               </div>
             </div>
             
-            <div className="bg-[#F5F3FF] dark:bg-[#6C63FF]/10 p-4 rounded-2xl space-y-2">
-              <p className="text-xs text-[#6C63FF] font-bold uppercase tracking-wider">Formula Finale</p>
-              <p className="text-sm text-[#1E1B3A] dark:text-[#F1F0FF] leading-relaxed">
-                Dividiamo il <strong>Disponibile Totale</strong> per i <strong>{stats.daysRemaining} giorni</strong> rimasti fino al prossimo stipendio.
+            <div className="bg-[#F4EBD0] dark:bg-[#3E7B85]/10 p-5 rounded-2xl space-y-2 border-l-4 border-[#3E7B85]">
+              <p className="text-[10px] text-[#3E7B85] font-bold uppercase tracking-widest">Calcolo Rotta</p>
+              <p className="text-sm text-[#1A2A2D] dark:text-[#F4EBD0] leading-relaxed">
+                Dividiamo il <strong>Disponibile Netto</strong> per i <strong>{stats.daysRemaining} giorni</strong> di navigazione rimasti.
               </p>
               <div className="flex items-center gap-2 pt-2">
-                <div className="px-3 py-1 bg-white dark:bg-[#1A1830] rounded-lg font-bold text-[#6C63FF]">
+                <div className="px-4 py-2 bg-white dark:bg-[#122326] rounded-lg font-bold text-[#3E7B85] shadow-sm">
                   {formatCurrency(stats.dailyBudget)} / giorno
                 </div>
               </div>
@@ -233,121 +233,99 @@ const Index = () => {
         </DialogContent>
       </Dialog>
 
-      {showNotifyPrompt && (
-        <NotificationPrompt 
-          onAccept={async () => {
-            const permission = await Notification.requestPermission();
-            if (permission === 'granted') updateSettings({ notificationsEnabled: true });
-            setShowNotifyPrompt(false);
-            localStorage.setItem('notify_prompt_shown', 'true');
-          }}
-          onDecline={() => {
-            setShowNotifyPrompt(false);
-            localStorage.setItem('notify_prompt_shown', 'true');
-          }}
-        />
-      )}
-
       <div className="space-y-8 pt-2">
         <div className="flex items-center justify-between px-1">
           <div className="flex items-center gap-3">
-            <div className="bg-gradient-to-br from-[#6C63FF] to-[#A78BFA] p-2 rounded-xl text-white shadow-lg shadow-[#6C63FF]/20">
-              <Wallet size={20} />
+            <div className="bg-[#3E7B85] p-2.5 rounded-xl text-white shadow-lg shadow-[#3E7B85]/20">
+              <Ship size={22} />
             </div>
-            <h1 className="text-2xl font-bold text-[#1E1B3A] dark:text-[#F1F0FF] tracking-tight">DailyBudget</h1>
+            <h1 className="text-2xl font-bold text-[#1A2A2D] dark:text-[#F4EBD0] tracking-tighter uppercase">DailyBudget</h1>
           </div>
           
           <button 
             onClick={() => setShowBreakdown(true)}
-            className="p-2 text-[#6C63FF] bg-[#F5F3FF] dark:bg-[#6C63FF]/10 rounded-full active:scale-90 transition-transform"
+            className="p-2 text-[#3E7B85] bg-[#3E7B85]/10 rounded-full active:scale-90 transition-transform"
           >
             <Info size={20} />
           </button>
         </div>
 
-        {/* Scena della Barca */}
         <div className="px-1">
           <BoatScene 
             state={reaction || stats.mascotState} 
-            size={180} 
+            size={190} 
           />
         </div>
 
-        <Card className="p-6 bg-gradient-to-br from-[#6C63FF] to-[#A78BFA] border-none shadow-[0_8px_32px_rgba(108,99,255,0.25)] rounded-[24px] relative overflow-hidden">
-          <div className="absolute -top-10 -right-10 w-32 h-32 bg-white/10 rounded-full blur-2xl" />
+        <Card className="p-7 bg-[#3E7B85] border-none shadow-2xl rounded-[28px] relative overflow-hidden">
+          <div className="absolute -top-10 -right-10 w-40 h-40 bg-white/5 rounded-full blur-3xl" />
           <div className="relative z-10">
             <div className="flex justify-between items-start mb-1">
-              <p className="text-white/80 font-medium text-[13px]">Budget di oggi</p>
+              <p className="text-white/60 font-bold text-[10px] uppercase tracking-[0.2em]">Budget Giornaliero</p>
               {stats.savingsGoal > 0 && (
-                <Badge className="bg-white/20 text-white border-none text-[9px] font-bold">AL NETTO DEL RISPARMIO</Badge>
+                <Badge className="bg-[#E67E22] text-white border-none text-[8px] font-bold tracking-widest">RISERVA ATTIVA</Badge>
               )}
             </div>
-            <h1 className="text-[42px] font-bold text-white tracking-tight mb-2 leading-none">
+            <h1 className="text-[48px] font-bold text-white tracking-tighter mb-2 leading-none">
               {formatCurrency(stats.dailyBudget)}
             </h1>
             
             <button 
               onClick={() => setShowBreakdown(true)}
-              className="flex items-center gap-1 text-white/70 text-[11px] font-bold hover:text-white transition-colors mb-6"
+              className="flex items-center gap-1 text-white/50 text-[10px] font-bold hover:text-white transition-colors mb-8 uppercase tracking-widest"
             >
-              VEDI DETTAGLIO CALCOLO <ChevronRight size={12} />
+              Vedi Log di Calcolo <ChevronRight size={12} />
             </button>
 
-            <div className="flex items-center gap-2 text-white/85 mb-6">
-              <Calendar size={14} />
-              <span className="text-sm font-medium">{stats.daysRemaining} giorni al prossimo stipendio</span>
+            <div className="flex items-center gap-2 text-white/80 mb-6">
+              <Anchor size={14} />
+              <span className="text-xs font-bold uppercase tracking-wider">{stats.daysRemaining} giorni al porto</span>
             </div>
             <div className="space-y-2">
-              <div className="flex justify-between text-[10px] font-bold text-white/70 uppercase tracking-wider">
-                <span>Mese trascorso</span>
+              <div className="flex justify-between text-[9px] font-bold text-white/50 uppercase tracking-[0.2em]">
+                <span>Navigazione</span>
                 <span>{Math.round(stats.progress)}%</span>
               </div>
-              <div className="h-2 w-full bg-white/20 rounded-full overflow-hidden">
-                <div className="h-full bg-white/90 transition-all duration-1000" style={{ width: `${stats.progress}%` }} />
+              <div className="h-2.5 w-full bg-black/20 rounded-full overflow-hidden p-0.5">
+                <div className="h-full bg-white rounded-full transition-all duration-1000" style={{ width: `${stats.progress}%` }} />
               </div>
             </div>
           </div>
         </Card>
 
         {stats.savingsGoal > 0 && (
-          <Card className={`p-5 border-none shadow-sm rounded-[20px] transition-all duration-500 ${stats.isOnTrack ? 'bg-green-50 dark:bg-green-900/20' : 'bg-red-50 dark:bg-red-900/20'}`}>
-            <div className="flex items-center justify-between mb-3">
+          <Card className={`p-6 border-none shadow-sm rounded-[24px] transition-all duration-500 ${stats.isOnTrack ? 'bg-[#27AE60]/10' : 'bg-[#C0392B]/10'}`}>
+            <div className="flex items-center justify-between mb-4">
               <div className="flex items-center gap-2">
-                <Target size={16} className={stats.isOnTrack ? 'text-green-500' : 'text-red-500'} />
-                <span className="text-sm font-bold text-[#1E1B3A] dark:text-[#F1F0FF]">Obiettivo Risparmio</span>
+                <Target size={18} className={stats.isOnTrack ? 'text-[#27AE60]' : 'text-[#C0392B]'} />
+                <span className="text-xs font-bold text-[#1A2A2D] dark:text-[#F4EBD0] uppercase tracking-widest">Obiettivo Riserva</span>
               </div>
-              <div className="flex items-center gap-1.5">
-                {stats.isOnTrack ? (
-                  <Badge className="bg-green-500 text-white border-none text-[10px] font-bold gap-1">
-                    <CheckCircle2 size={10} /> IN LINEA
-                  </Badge>
-                ) : (
-                  <Badge className="bg-red-500 text-white border-none text-[10px] font-bold gap-1">
-                    <AlertCircle size={10} /> SPENDI TROPPO
-                  </Badge>
-                )}
-              </div>
+              {stats.isOnTrack ? (
+                <Badge className="bg-[#27AE60] text-white border-none text-[9px] font-bold tracking-widest">IN ROTTA</Badge>
+              ) : (
+                <Badge className="bg-[#C0392B] text-white border-none text-[9px] font-bold tracking-widest">FUORI ROTTA</Badge>
+              )}
             </div>
-            <div className="space-y-2">
-              <div className="h-2.5 w-full bg-slate-100 dark:bg-slate-800 rounded-full overflow-hidden">
+            <div className="space-y-3">
+              <div className="h-2 w-full bg-slate-100 dark:bg-slate-800 rounded-full overflow-hidden">
                 <div 
-                  className={`h-full transition-all duration-1000 ${stats.isOnTrack ? 'bg-green-500' : 'bg-red-500'}`}
+                  className={`h-full transition-all duration-1000 ${stats.isOnTrack ? 'bg-[#27AE60]' : 'bg-[#C0392B]'}`}
                   style={{ width: `${savingsProgress}%` }}
                 />
               </div>
-              <p className="text-[11px] font-medium text-slate-500 dark:text-slate-400">
-                Hai messo da parte <span className="font-bold text-[#1E1B3A] dark:text-[#F1F0FF]">{formatCurrency(stats.currentSavings)}</span> su {formatCurrency(stats.savingsGoal)}
+              <p className="text-[11px] font-bold text-slate-500 dark:text-slate-400 uppercase tracking-tight">
+                Riserva accumulata: <span className="text-[#1A2A2D] dark:text-[#F4EBD0]">{formatCurrency(stats.currentSavings)}</span> / {formatCurrency(stats.savingsGoal)}
               </p>
             </div>
           </Card>
         )}
 
-        <Card className="p-6 bg-white dark:bg-[#1A1830] border-none shadow-sm rounded-[24px] space-y-4">
+        <Card className="p-6 bg-white dark:bg-[#122326] border-none shadow-sm rounded-[24px] space-y-5">
           <div className="flex items-center gap-2">
-            <TrendingUp size={18} className="text-[#6C63FF]" />
-            <h2 className="text-sm font-bold text-[#1E1B3A] dark:text-[#F1F0FF]">Andamento del mese</h2>
+            <TrendingUp size={18} className="text-[#3E7B85]" />
+            <h2 className="text-xs font-bold text-[#1A2A2D] dark:text-[#F4EBD0] uppercase tracking-widest">Marea Finanziaria</h2>
           </div>
-          <div className="h-[140px] w-full">
+          <div className="h-[150px] w-full">
             {trendValues.length > 1 ? (
               <Line 
                 data={chartData} 
@@ -362,19 +340,19 @@ const Index = () => {
                 }} 
               />
             ) : (
-              <div className="h-full flex items-center justify-center text-slate-400 text-xs italic">
-                Dati insufficienti
+              <div className="h-full flex items-center justify-center text-slate-400 text-xs italic font-medium">
+                In attesa di dati di navigazione...
               </div>
             )}
           </div>
         </Card>
 
         <div className="space-y-5">
-          <h2 className="text-[18px] font-bold text-[#1E1B3A] dark:text-[#F1F0FF] px-1">Spese recenti</h2>
+          <h2 className="text-sm font-bold text-[#1A2A2D] dark:text-[#F4EBD0] px-1 uppercase tracking-widest">Log Carichi Recenti</h2>
           <div className="space-y-3">
             {data.expenses.length === 0 ? (
-              <div className="text-center py-12 bg-white dark:bg-[#1A1830] rounded-[20px] border border-slate-100 dark:border-slate-800 shadow-sm">
-                <p className="text-[#6B7280] text-sm font-medium">Nessuna spesa inserita</p>
+              <div className="text-center py-14 bg-white dark:bg-[#122326] rounded-[24px] border-2 border-dashed border-slate-100 dark:border-slate-800">
+                <p className="text-slate-400 text-xs font-bold uppercase tracking-widest">Nessun carico registrato</p>
               </div>
             ) : (
               data.expenses.map((expense) => {
@@ -386,29 +364,29 @@ const Index = () => {
                     onPointerUp={handleTouchEnd}
                     onPointerLeave={handleTouchEnd}
                     onClick={() => navigate(`/add?edit=${expense.id}`)}
-                    className="bg-white dark:bg-[#1A1830] p-4 rounded-[16px] border-l-4 flex items-center justify-between shadow-sm active:scale-[0.98] transition-all cursor-pointer select-none"
+                    className="bg-white dark:bg-[#122326] p-4 rounded-[20px] border-l-4 flex items-center justify-between shadow-sm active:scale-[0.98] transition-all cursor-pointer select-none"
                     style={{ borderLeftColor: cat.color }}
                   >
                     <div className="flex items-center gap-4">
-                      <div className="w-12 h-12 rounded-full bg-slate-50 dark:bg-slate-900 flex items-center justify-center text-xl shadow-inner">{cat.icon}</div>
+                      <div className="w-12 h-12 rounded-xl bg-slate-50 dark:bg-slate-900/50 flex items-center justify-center text-xl shadow-inner">{cat.icon}</div>
                       <div>
                         <div className="flex items-center gap-1.5">
-                          <h3 className="font-bold text-[#1E1B3A] dark:text-[#F1F0FF] leading-tight">{expense.description}</h3>
-                          {expense.recurring && <Repeat size={12} className="text-[#6C63FF]" />}
+                          <h3 className="font-bold text-[#1A2A2D] dark:text-[#F4EBD0] text-sm leading-tight">{expense.description}</h3>
+                          {expense.recurring && <Repeat size={12} className="text-[#3E7B85]" />}
                         </div>
-                        <p className="text-[10px] text-slate-400 font-bold uppercase tracking-wider mt-0.5">
+                        <p className="text-[9px] text-slate-400 font-bold uppercase tracking-widest mt-1">
                           {format(parseISO(expense.startDate), 'dd MMM yyyy')}
                         </p>
                       </div>
                     </div>
                     <div className="flex flex-col items-end gap-2">
-                      <span className="text-[15px] font-bold text-[#1E1B3A] dark:text-[#F1F0FF]">{formatCurrency(expense.totalAmount)}</span>
+                      <span className="text-sm font-bold text-[#1A2A2D] dark:text-[#F4EBD0]">{formatCurrency(expense.totalAmount)}</span>
                       <button 
                         onClick={(e) => { 
                           e.stopPropagation(); 
                           setExpenseToDelete(expense.id); 
                         }} 
-                        className="p-1.5 text-slate-300 hover:text-red-400 transition-colors"
+                        className="p-1.5 text-slate-200 hover:text-[#8B2635] transition-colors"
                       >
                         <Trash2 size={14} />
                       </button>
