@@ -70,6 +70,7 @@ const Settings = () => {
 
         {!showHistory ? (
           <>
+            {/* Riserva di Sicurezza */}
             <Card className="p-6 border-none shadow-sm bg-white dark:bg-[#122326] rounded-[28px] space-y-6 relative overflow-hidden">
               <div className="absolute top-0 left-0 w-full h-1 bg-[#E67E22]" />
               <div className="flex items-center gap-3 text-[#E67E22]">
@@ -93,6 +94,7 @@ const Settings = () => {
               </div>
             </Card>
 
+            {/* Carichi Ricorrenti */}
             <Card className="p-6 border-none shadow-sm bg-white dark:bg-[#122326] rounded-[28px] space-y-6 relative overflow-hidden">
               <div className="absolute top-0 left-0 w-full h-1 bg-[#3E7B85]" />
               <div className="flex items-center gap-3 text-[#3E7B85]"><Repeat size={20} /><h2 className="font-bold text-sm uppercase tracking-widest">Carichi Ricorrenti</h2></div>
@@ -106,6 +108,7 @@ const Settings = () => {
               </div>
             </Card>
 
+            {/* Notifiche */}
             <Card className="p-6 border-none shadow-sm bg-white dark:bg-[#122326] rounded-[28px] space-y-4">
               <div className="flex items-center justify-between">
                 <div className="flex items-center gap-3 text-[#3E7B85]"><Bell size={20} /><h2 className="font-bold text-sm uppercase tracking-widest">Segnali Radio</h2></div>
@@ -113,6 +116,7 @@ const Settings = () => {
               </div>
             </Card>
 
+            {/* Esportazione */}
             <div className="grid grid-cols-2 gap-3">
               <Button variant="outline" className="h-14 rounded-2xl border-2 border-slate-100 dark:border-slate-800 font-bold gap-2 text-xs uppercase tracking-widest" onClick={handleExportCSV}><FileText size={18} className="text-[#3E7B85]" />CSV</Button>
               <Button variant="outline" className="h-14 rounded-2xl border-2 border-slate-100 dark:border-slate-800 font-bold gap-2 text-xs uppercase tracking-widest" onClick={handleExportPDF}><Download size={18} className="text-[#E67E22]" />PDF</Button>

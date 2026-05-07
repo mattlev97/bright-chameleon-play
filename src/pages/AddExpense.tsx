@@ -92,6 +92,7 @@ const AddExpense = () => {
           <Card className="p-6 bg-white dark:bg-[#122326] border-none shadow-sm rounded-[28px] space-y-6 relative overflow-hidden">
             <div className="absolute top-0 left-0 w-full h-1 bg-[#3E7B85]" />
             
+            {/* Selettore Peso Carico */}
             <div className="space-y-3">
               <Label className="text-[10px] font-bold uppercase tracking-[0.2em] text-[#3E7B85]">Gravità del Carico</Label>
               <div className="grid grid-cols-3 gap-2">
@@ -134,6 +135,7 @@ const AddExpense = () => {
               </div>
             </div>
 
+            {/* Categorie */}
             <div className="space-y-2">
               <Label className="text-[10px] font-bold uppercase tracking-[0.2em] text-[#3E7B85]">Categoria</Label>
               <div className="flex gap-3 overflow-x-auto pb-2 no-scrollbar">
@@ -226,6 +228,7 @@ const AddExpense = () => {
             </div>
           </Card>
 
+          {/* Pannello di Controllo Impatto */}
           <Card className="p-6 bg-[#3E7B85] border-none rounded-[28px] shadow-xl shadow-[#3E7B85]/20">
             <div className="flex items-center gap-3 mb-4">
               <Sparkles size={18} className="text-white/60" />
