@@ -5,7 +5,6 @@ import AppLayout from '../components/layout/AppLayout';
 import Onboarding from '../components/budget/Onboarding';
 import NotificationPrompt from '../components/budget/NotificationPrompt';
 import MascotBlob from '../components/budget/MascotBlob';
-import { AIChat } from '../components/budget/AIChat';
 import { Card } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
@@ -72,6 +71,7 @@ const Index = () => {
   const [longPressedExpense, setLongPressedExpense] = useState<any | null>(null);
   const timerRef = useRef<NodeJS.Timeout | null>(null);
 
+  // Effetto per scrollare in alto quando Bibi reagisce
   useEffect(() => {
     if (reaction) {
       window.scrollTo({ top: 0, behavior: 'smooth' });
@@ -266,6 +266,7 @@ const Index = () => {
           </button>
         </div>
 
+        {/* Mascotte Bibi */}
         <div className="flex justify-center -mb-12 relative z-20">
           <MascotBlob 
             type={data.settings.mascotId} 
@@ -421,9 +422,6 @@ const Index = () => {
           </div>
         </div>
       </div>
-      
-      {/* Integrazione Chat AI */}
-      <AIChat />
     </AppLayout>
   );
 };
